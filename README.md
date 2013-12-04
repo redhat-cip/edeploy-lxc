@@ -8,7 +8,7 @@ It will deploy a set of LXC containers based on:
 - a eDeploy role
 - IP and host from a YAML conf
 
-## Use case
+## use case
 
 John needs to validate the new Puppet configuration but to do so, it
 has to deploy 6 differents virtual machines.
@@ -20,3 +20,7 @@ has to deploy 6 differents virtual machines.
 2. He calls `edeploy-lxc start`
 3. Once he is done, he call `edeploy-lxc stop` to turn off the containers
 4. Profit!
+
+## supported platform
+
+- Debian 7
