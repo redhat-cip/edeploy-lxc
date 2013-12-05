@@ -38,14 +38,15 @@ def stop():
         subprocess.call(['lxc-stop', '-n', host['name'] ])
     
         if os.path.exists(lxc_dir):
+            print("[%s]" % host['name'])
             try:
                 subprocess.call(['umount', lxc_dir ])
             except:
                 print("Failed to umount %s" % lxc_dir)
             shutil.rmtree(lxc_dir)
 
-        if os.path.exists(aufs_rw_dir):
-            shutil.rmtree(aufs_rw_dir)
+            if os.path.exists(aufs_rw_dir):
+                shutil.rmtree(aufs_rw_dir)
 
 def start():
 
@@ -59,6 +60,7 @@ def start():
     os.unlink("/var/lib/lxc/basesys/rootfs/sbin/rmmod")
     
     for host in conf['hosts']:
+        print("[%s]" % host['name'])
 
         aufs_rw_dir = "/tmp/base_aufs/%s" % host['name']
         lxc_dir = "/var/lib/lxc/%s" % host['name']
@@ -131,7 +133,7 @@ def start():
             fd.close()
 
     
-        print("launching")
+        print("    launching")
         subprocess.call(['lxc-start', '--daemon', '--console-log', '/tmp/lxc-%s.log' % host['name'], '-n', host['name'] ])
 
 def usage():
