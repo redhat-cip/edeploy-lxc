@@ -120,9 +120,9 @@ def start():
         hostFd.close()
        
         a = augeas.Augeas(root="/var/lib/lxc/%s/rootfs" % host['name'])
-        a.set("/files/etc/hostname/hostname", host['name'])
+        a.set("/files/etc/hostname/hostname", "%s" % host['name'])
         a.set("/files/etc/default/puppet/START", "yes")
-        a.set("/files/etc/puppet/puppet.conf/main/server", conf['network']['puppet_host'])
+        a.set("/files/etc/puppet/puppet.conf/main/server", "%s.%s" % (conf['network']['puppet_host'], conf['network']['domain']))
         a.save()
 
         if host['name'] == conf['network']['puppet_host']:
