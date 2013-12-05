@@ -17,10 +17,10 @@ has to deploy 6 differents virtual machines.
     - the domain
     - the name of a bridge interface
     - a list of virtual machine (IP and name)
-2. He calls `edeploy-lxc start`
-3. Start the puppet master:
+2. He calls `edeploy-lxc start` as root
+3. Start the puppet master, for example:
     ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@10.68.0.48 puppet master --debug --no-daemonize
-3. Once he is done, he call `edeploy-lxc stop` to turn off the containers
+3. Once he is done, he call `edeploy-lxc stop` as root to turn off the containers
 
 ## requirements
 
