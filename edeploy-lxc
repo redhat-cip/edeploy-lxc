@@ -130,15 +130,14 @@ def start():
         a = augeas.Augeas(root="/var/lib/lxc/%s/rootfs" % host['name'])
         a.set("/files/etc/hostname/hostname", "%s" % host['name'])
         a.set("/files/etc/default/puppet/START", "yes")
-        a.set("/files/etc/puppet/puppet.conf/main/server", "%s.%s" % (conf['network']['puppet_host'], conf['network']['domain']))
+        a.set("/files/etc/puppet/puppet.conf/main/server", "%s.%s" % (conf['general']['puppet_host'], conf['network']['domain']))
         a.save()
 
-        if host['name'] == conf['network']['puppet_host']:
-            print("    coping Puppet configuration")
-            subprocess.call(['rsync', '-a', '%s/' % conf['network']['puppet_cfg_dir'], "/var/lib/lxc/%s/rootfs/etc/puppet" % host['name']])
+        if host['name'] == conf['general']['puppet_host']:
+            print("    copying Puppet configuration")
+            subprocess.call(['rsync', '-a', '%s/' % conf['general']['puppet_cfg_dir'], "/var/lib/lxc/%s/rootfs/etc/puppet" % host['name']])
             fd = open('/var/lib/lxc/%s/rootfs/etc/puppet/autosign.conf' % host['name'], 'w')
             fd.write("*.%s\n" % conf['network']['domain'])
-            fd.close()
 
 
         setup_ssh_key(conf, host)
