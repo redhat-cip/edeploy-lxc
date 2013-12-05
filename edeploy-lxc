@@ -122,7 +122,7 @@ def start():
             "ff02::2 ip6-allrouters\n"
         )
         for h in conf['hosts']:
-            hostFd.write("%s %s %s.%s\n" % (h['address'], h['name'], h['name'], conf['network']['domain']))
+            hostFd.write("%s %s.%s %s\n" % (h['address'], h['name'], conf['network']['domain'], h['name']))
         
         hostFd.close()
        
