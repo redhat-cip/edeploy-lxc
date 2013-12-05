@@ -137,13 +137,16 @@ def start():
         subprocess.call(['lxc-start', '--daemon', '--console-log', '/tmp/lxc-%s.log' % host['name'], '-n', host['name'] ])
 
 def usage():
-    print "Usage: %s (stop|start)" % sys.argv[0]
+    print "Usage: %s (stop|start|restart)" % sys.argv[0]
 
 if len(sys.argv) > 1:
     if sys.argv[1] == 'start':
         start()
     elif sys.argv[1] == 'stop':
         stop()
+    elif sys.argv[1] == 'restart':
+        stop()
+        start()
 else:
     usage()
 
