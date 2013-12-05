@@ -2,8 +2,10 @@ network:
     domain: enovance.com
     bridge: virbr1
     gateway: 10.68.0.1
+general:
     puppet_host: os-ci-test4
     puppet_cfg_dir: /home/goneri/enovance/puppet-edeploy
+    ssh_key: /home/goneri/.ssh/id_rsa.pub
 edeploy:
     dir: /var/lib/debootstrap/install/D7-F.1.0.0/openstack-full
 hosts:

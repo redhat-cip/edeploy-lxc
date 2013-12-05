@@ -28,6 +28,14 @@ import shutil
 stream = file('config.yaml', 'r')
 conf=yaml.load(stream)
 
+def setup_ssh_key(conf, host):
+    if not 'ssh_key' in conf['network']:
+            return
+
+    ssh_dir = '/var/lib/lxc/%s/rootfs/root/.ssh/' % host['name']
+    os.makedirs(ssh_dir)
+    shutil.copyfile(conf['general']['ssh_key'], ssh_dir + '/authorized_keys')
+
 
 def stop():
     print "stopping"
@@ -132,7 +140,10 @@ def start():
             fd.write("*.%s\n" % conf['network']['domain'])
             fd.close()
 
-    
+
+        setup_ssh_key(conf, host)
+
+
         print("    launching")
         subprocess.call(['lxc-start', '--daemon', '--console-log', '/tmp/lxc-%s.log' % host['name'], '-n', host['name'] ])
 
