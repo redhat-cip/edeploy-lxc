@@ -22,6 +22,15 @@ has to deploy 6 differents virtual machines.
     ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@10.68.0.48 puppet master --debug --no-daemonize
 3. Once he is done, he call `edeploy-lxc stop` to turn off the containers
 
+## requirements
+
+* lxc
+* python (testd with 2.7)
+* python-augeas
+* python-yaml
+
+Bridge has to be create first. You can use libvirt for that or do it manually.
+
 
 ## supported platform
 

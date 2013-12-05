@@ -19,7 +19,6 @@
 import glob
 import augeas
 import yaml
-from pprint import pprint
 import subprocess
 import os
 import sys
