@@ -28,7 +28,7 @@ stream = file('config.yaml', 'r')
 conf=yaml.load(stream)
 
 def setup_ssh_key(conf, host):
-    if not 'ssh_key' in conf['network']:
+    if not 'ssh_key' in conf['general']:
             return
 
     ssh_dir = '/var/lib/lxc/%s/rootfs/root/.ssh/' % host['name']
