@@ -30,7 +30,7 @@ conf=yaml.load(stream)
 
 
 def stop():
-    print "stop"
+    print "stopping"
     for host in conf['hosts']:
     
         aufs_rw_dir = "/tmp/base_aufs/%s" % host['name']
@@ -122,6 +122,14 @@ def start():
         a.set("/files/etc/default/puppet/START", "yes")
         a.set("/files/etc/puppet/puppet.conf/main/server", conf['network']['puppet_host'])
         a.save()
+
+        if host['name'] == conf['network']['puppet_host']:
+            print("    coping Puppet configuration")
+            subprocess.call(['rsync', '-a', '%s/' % conf['network']['puppet_cfg_dir'], "/var/lib/lxc/%s/rootfs/etc/puppet" % host['name']])
+            fd = open('/var/lib/lxc/%s/rootfs/etc/puppet/autosign.conf' % host['name'], 'w')
+            fd.write("*.%s\n" % conf['network']['domain'])
+            fd.close()
+
     
         print("launching")
         subprocess.call(['lxc-start', '--daemon', '--console-log', '/tmp/lxc-%s.log' % host['name'], '-n', host['name'] ])

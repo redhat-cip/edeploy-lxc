@@ -2,7 +2,8 @@ network:
     domain: enovance.com
     bridge: virbr1
     gateway: 10.68.0.1
-    puppet_host: os-ci-test4.enovance.com
+    puppet_host: os-ci-test4
+    puppet_cfg_dir: /home/goneri/enovance/puppet-edeploy
 edeploy:
     dir: /var/lib/debootstrap/install/D7-F.1.0.0/openstack-full
 hosts:
