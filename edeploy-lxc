@@ -54,7 +54,7 @@ def start():
     my_env["SUITE"] = "wheezy"
     
     subprocess.call(['lxc-create', '-t', 'debian', '-n', 'basesys'], env=my_env)
-    subprocess.call(['rsync', '-av', '%s/' % conf['edeploy']['dir'], '/var/lib/lxc/basesys/rootfs'])
+    subprocess.call(['rsync', '-a', '%s/' % conf['edeploy']['dir'], '/var/lib/lxc/basesys/rootfs'])
     
     # work around for LXC bug
     os.unlink("/var/lib/lxc/basesys/rootfs/sbin/rmmod")
