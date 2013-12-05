@@ -18,8 +18,10 @@ has to deploy 6 differents virtual machines.
     - the name of a bridge interface
     - a list of virtual machine (IP and name)
 2. He calls `edeploy-lxc start`
+3. Start the puppet master:
+    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@10.68.0.48 puppet master --debug --no-daemonize
 3. Once he is done, he call `edeploy-lxc stop` to turn off the containers
-4. Profit!
+
 
 ## supported platform
 
