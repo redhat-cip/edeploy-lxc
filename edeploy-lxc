@@ -130,6 +130,8 @@ def start():
         a.set("/files/etc/hostname/hostname", "%s" % host['name'])
         a.set("/files/etc/default/puppet/START", "yes")
         a.set("/files/etc/puppet/puppet.conf/main/server", "%s.%s" % (conf['general']['puppet_host'], conf['network']['domain']))
+        a.set("/files/etc/puppet/puppet.conf/master/storeconfigs", "true")
+        a.set("/files/etc/puppet/puppet.conf/master/dbadapter", "sqlite3")
         a.save()
 
         if host['name'] == conf['general']['puppet_host']:
