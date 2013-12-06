@@ -39,7 +39,7 @@ def setup_ssh_key(conf, host):
 def stop():
     print "stopping"
     for host in conf['hosts']:
-    
+
         aufs_rw_dir = "/tmp/base_aufs/%s" % host['name']
         lxc_dir = "/var/lib/lxc/%s" % host['name']
         subprocess.call(['lxc-stop', '-n', host['name'] ])
@@ -59,7 +59,7 @@ def start():
 
     my_env = os.environ
     my_env["SUITE"] = "wheezy"
-    
+
 #    subprocess.call(['lxc-create', '-t', 'debian', '-n', 'basesys'], env=my_env)
 
     if not os.path.exists('/var/lib/lxc/basesys/rootfs'):
@@ -69,11 +69,11 @@ def start():
 
     subprocess.call(['rsync', '-av', '%s/' % conf['edeploy']['dir'], '/var/lib/lxc/basesys/rootfs'])
     subprocess.call(['tar', 'xf', '/usr/share/debootstrap/devices.tar.gz'], cwd='/var/lib/lxc/basesys/rootfs')
-    
+
     # work around for LXC bug, rmmod module on the host system
     if os.path.exists('/var/lib/lxc/basesys/rootfs/sbin/rmmod'):
         os.unlink("/var/lib/lxc/basesys/rootfs/sbin/rmmod")
-    
+ 
     for host in conf['hosts']:
         print("[%s]" % host['name'])
 
@@ -83,10 +83,10 @@ def start():
 
         os.makedirs(lxc_dir)
         os.makedirs(aufs_rw_dir)
-    
+
         subprocess.call(['mount', '-t', 'aufs', '-o', 'br=%s:%s' % (aufs_rw_dir, '/var/lib/lxc/basesys'), 'none', lxc_dir ])
-    
-    
+
+
         lxcConfFd = open('/var/lib/lxc/%s/config' % host['name'], 'w')
         lxcConfFd.write("lxc.network.type = veth\n" +
             "lxc.network.flags = up\n" +
