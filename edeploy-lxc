@@ -60,8 +60,15 @@ def start():
     my_env = os.environ
     my_env["SUITE"] = "wheezy"
     
-    subprocess.call(['lxc-create', '-t', 'debian', '-n', 'basesys'], env=my_env)
-    subprocess.call(['rsync', '-a', '%s/' % conf['edeploy']['dir'], '/var/lib/lxc/basesys/rootfs'])
+#    subprocess.call(['lxc-create', '-t', 'debian', '-n', 'basesys'], env=my_env)
+
+    if not os.path.exists('/var/lib/lxc/basesys/rootfs'):
+        os.makedirs('/var/lib/lxc/basesys/rootfs')
+    if not os.path.exists('/var/lib/lxc/basesys/rootfs/dev/pts'):
+        os.makedirs('/var/lib/lxc/basesys/rootfs/dev/pts')
+
+    subprocess.call(['rsync', '-av', '%s/' % conf['edeploy']['dir'], '/var/lib/lxc/basesys/rootfs'])
+    subprocess.call(['tar', 'xf', '/usr/share/debootstrap/devices.tar.gz'], cwd='/var/lib/lxc/basesys/rootfs')
     
     # work around for LXC bug
     os.unlink("/var/lib/lxc/basesys/rootfs/sbin/rmmod")
