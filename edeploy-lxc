@@ -110,18 +110,20 @@ def start():
             "lxc.mount.entry = proc proc proc nodev,noexec,nosuid 0 0\n" +
             "lxc.mount.entry = sysfs sys sysfs defaults  0 0\n")
         lxcConfFd.close()
-    
-    
-        netFd = open('/var/lib/lxc/%s/rootfs/etc/network/interfaces' % host['name'], 'w')
-        netFd.write("auto lo\n" +
-            "iface lo inet loopback\n" +
-            "auto eth0\n" +
-            "iface eth0 inet static\n" +
-            "    address %s\n" % host['address'] +
-            "    netmask 255.255.255.0\n" +
-            "    gateway %s\n" % conf['network']['gateway'])
-        netFd.close()
-    
+
+  
+        debian_interfaces = '/var/lib/lxc/%s/rootfs/etc/network/interfaces' % host['name']
+        if os.path.exists(debian_interfaces):
+            netFd = open(debian_interfaces, 'w')
+            netFd.write("auto lo\n" +
+                "iface lo inet loopback\n" +
+                "auto eth0\n" +
+                "iface eth0 inet static\n" +
+                "    address %s\n" % host['address'] +
+                "    netmask 255.255.255.0\n" +
+                "    gateway %s\n" % conf['network']['gateway'])
+            netFd.close()
+ 
         hostFd = open('/var/lib/lxc/%s/rootfs/etc/hosts' % host['name'], 'w')
         hostFd.write(
             "127.0.0.1 %s.%s %s localhost\n" % (host['name'], host['name'], conf['network']['domain']) +
