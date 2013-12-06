@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 # Copyright (C) 2013 eNovance SAS <licensing@enovance.com>
 #
 # Author: Gonéri Le Bouder <goneri.lebouder@enovance.com>
@@ -39,11 +39,11 @@ def setup_ssh_key(conf, host):
 def stop():
     print "stopping"
     for host in conf['hosts']:
-    
+
         aufs_rw_dir = "/tmp/base_aufs/%s" % host['name']
         lxc_dir = "/var/lib/lxc/%s" % host['name']
         subprocess.call(['lxc-stop', '-n', host['name'] ])
-    
+
         if os.path.exists(lxc_dir):
             print("[%s]" % host['name'])
             try:
@@ -59,13 +59,13 @@ def start():
 
     my_env = os.environ
     my_env["SUITE"] = "wheezy"
-    
+
     subprocess.call(['lxc-create', '-t', 'debian', '-n', 'basesys'], env=my_env)
     subprocess.call(['rsync', '-a', '%s/' % conf['edeploy']['dir'], '/var/lib/lxc/basesys/rootfs'])
-    
+
     # work around for LXC bug
     os.unlink("/var/lib/lxc/basesys/rootfs/sbin/rmmod")
-    
+
     for host in conf['hosts']:
         print("[%s]" % host['name'])
 
@@ -75,10 +75,10 @@ def start():
 
         os.makedirs(lxc_dir)
         os.makedirs(aufs_rw_dir)
-    
+
         subprocess.call(['mount', '-t', 'aufs', '-o', 'br=%s:%s' % (aufs_rw_dir, '/var/lib/lxc/basesys'), 'none', lxc_dir ])
-    
-    
+
+
         lxcConfFd = open('/var/lib/lxc/%s/config' % host['name'], 'w')
         lxcConfFd.write("lxc.network.type = veth\n" +
             "lxc.network.flags = up\n" +
@@ -102,8 +102,8 @@ def start():
             "lxc.mount.entry = proc proc proc nodev,noexec,nosuid 0 0\n" +
             "lxc.mount.entry = sysfs sys sysfs defaults  0 0\n")
         lxcConfFd.close()
-    
-    
+
+
         netFd = open('/var/lib/lxc/%s/rootfs/etc/network/interfaces' % host['name'], 'w')
         netFd.write("auto lo\n" +
             "iface lo inet loopback\n" +
@@ -113,7 +113,7 @@ def start():
             "    netmask 255.255.255.0\n" +
             "    gateway %s\n" % conf['network']['gateway'])
         netFd.close()
-    
+
         hostFd = open('/var/lib/lxc/%s/rootfs/etc/hosts' % host['name'], 'w')
         hostFd.write(
             "127.0.0.1 %s.%s %s localhost\n" % (host['name'], host['name'], conf['network']['domain']) +
@@ -123,9 +123,9 @@ def start():
         )
         for h in conf['hosts']:
             hostFd.write("%s %s.%s %s\n" % (h['address'], h['name'], conf['network']['domain'], h['name']))
-        
+
         hostFd.close()
-       
+
         a = augeas.Augeas(root="/var/lib/lxc/%s/rootfs" % host['name'])
         a.set("/files/etc/hostname/hostname", "%s" % host['name'])
         a.set("/files/etc/default/puppet/START", "yes")
