@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 # Copyright (C) 2013 eNovance SAS <licensing@enovance.com>
 #
 # Author: Gonéri Le Bouder <goneri.lebouder@enovance.com>
@@ -43,7 +43,7 @@ def stop():
         aufs_rw_dir = "/tmp/base_aufs/%s" % host['name']
         lxc_dir = "/var/lib/lxc/%s" % host['name']
         subprocess.call(['lxc-stop', '-n', host['name'] ])
-    
+
         if os.path.exists(lxc_dir):
             print("[%s]" % host['name'])
             try:
@@ -73,7 +73,7 @@ def start():
     # work around for LXC bug, rmmod module on the host system
     if os.path.exists('/var/lib/lxc/basesys/rootfs/sbin/rmmod'):
         os.unlink("/var/lib/lxc/basesys/rootfs/sbin/rmmod")
- 
+
     for host in conf['hosts']:
         print("[%s]" % host['name'])
 
@@ -111,7 +111,6 @@ def start():
             "lxc.mount.entry = sysfs sys sysfs defaults  0 0\n")
         lxcConfFd.close()
 
-  
         debian_interfaces = '/var/lib/lxc/%s/rootfs/etc/network/interfaces' % host['name']
         if os.path.exists(debian_interfaces):
             netFd = open(debian_interfaces, 'w')
@@ -123,7 +122,7 @@ def start():
                 "    netmask 255.255.255.0\n" +
                 "    gateway %s\n" % conf['network']['gateway'])
             netFd.close()
- 
+
         hostFd = open('/var/lib/lxc/%s/rootfs/etc/hosts' % host['name'], 'w')
         hostFd.write(
             "127.0.0.1 %s.%s %s localhost\n" % (host['name'], host['name'], conf['network']['domain']) +
@@ -133,9 +132,9 @@ def start():
         )
         for h in conf['hosts']:
             hostFd.write("%s %s.%s %s\n" % (h['address'], h['name'], conf['network']['domain'], h['name']))
-        
+
         hostFd.close()
-       
+
         a = augeas.Augeas(root="/var/lib/lxc/%s/rootfs" % host['name'])
         a.set("/files/etc/hostname/hostname", "%s" % host['name'])
         a.set("/files/etc/default/puppet/START", "yes")
