@@ -70,8 +70,9 @@ def start():
     subprocess.call(['rsync', '-av', '%s/' % conf['edeploy']['dir'], '/var/lib/lxc/basesys/rootfs'])
     subprocess.call(['tar', 'xf', '/usr/share/debootstrap/devices.tar.gz'], cwd='/var/lib/lxc/basesys/rootfs')
     
-    # work around for LXC bug
-    os.unlink("/var/lib/lxc/basesys/rootfs/sbin/rmmod")
+    # work around for LXC bug, rmmod module on the host system
+    if os.path.exists('/var/lib/lxc/basesys/rootfs/sbin/rmmod'):
+        os.unlink("/var/lib/lxc/basesys/rootfs/sbin/rmmod")
     
     for host in conf['hosts']:
         print("[%s]" % host['name'])
