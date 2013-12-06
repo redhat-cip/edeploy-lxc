@@ -29,7 +29,34 @@ has to deploy 6 differents virtual machines.
 * python-augeas
 * python-yaml
 
+### Network
+
 Bridge has to be create first. You can use libvirt for that or do it manually.
+
+For example `/etc/libvirt/qemu/networks/enovance0.xml`:
+```xml
+<network>
+  <name>enovance0</name>
+  <uuid>bf1c0ff4-a3b1-4358-bd7c-3195c7fcd789</uuid>
+  <forward dev='wlan0' mode='nat'>
+    <interface dev='wlan0'/>
+  </forward>
+  <bridge name='virbr1' stp='on' delay='0'/>
+  <mac address='52:54:00:dd:c7:2d'/>
+  <ip address='10.68.0.1' netmask='255.255.255.0'>
+  </ip>
+</network>
+```
+
+### Working LXC
+
+* Enable cgroup in `/etc/default/libvirt-bin`:
+
+`mount_cgroups=yes`
+
+* Enable memory cgroup in grub `/etc/default/grub`:
+
+`GRUB_CMDLINE_LINUX="cgroup_enable=memory"` and run `update-grub2`
 
 
 ## supported platform
