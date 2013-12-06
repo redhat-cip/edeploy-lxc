@@ -65,6 +65,8 @@ def start():
 
     # work around for LXC bug
     os.unlink("/var/lib/lxc/basesys/rootfs/sbin/rmmod")
+    # work around for SeLinux bug with LXC
+    os.unlink("/selinux/enforce")
 
     for host in conf['hosts']:
         print("[%s]" % host['name'])
