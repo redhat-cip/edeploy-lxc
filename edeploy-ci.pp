@@ -1,8 +1,7 @@
-node /edploy-ci/ {
+node /edeploy-ci/ {
 
   class { 'libvirt':
     defaultnetwork => false,
-    qemu           => false,
   }
 
   $virt_net = {
@@ -12,7 +11,9 @@ node /edploy-ci/ {
 
   libvirt::network { 'enoci0':
     forward_mode => 'nat',
-    forward_dev  => 'virbr0',
+    forward_dev  => 'eth0',
+    autostart    => true,
+    bridge       => 'virbr1',
     ip           => [$virt_net],
   }
 
