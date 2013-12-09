@@ -25,6 +25,8 @@ has to deploy 6 differents virtual machines.
 ## requirements
 
 * lxc
+* rsync
+* aufs
 * python (testd with 2.7)
 * python-augeas
 * python-yaml
