@@ -60,8 +60,6 @@ def start():
     my_env = os.environ
     my_env["SUITE"] = "wheezy"
 
-#    subprocess.call(['lxc-create', '-t', 'debian', '-n', 'basesys'], env=my_env)
-
     if not os.path.exists('/var/lib/lxc/basesys/rootfs'):
         os.makedirs('/var/lib/lxc/basesys/rootfs')
     if not os.path.exists('/var/lib/lxc/basesys/rootfs/dev/pts'):
@@ -71,8 +69,8 @@ def start():
     subprocess.call(['tar', 'xf', '/usr/share/debootstrap/devices.tar.gz'], cwd='/var/lib/lxc/basesys/rootfs')
 
     # work around for LXC bug, rmmod module on the host system
-    if os.path.exists('/var/lib/lxc/basesys/rootfs/sbin/rmmod'):
-        os.unlink("/var/lib/lxc/basesys/rootfs/sbin/rmmod")
+    shutil.copyfile('/var/lib/lxc/basesys/rootfs/bin/echo', '/var/lib/lxc/basesys/rootfs/sbin/rmmod')
+    shutil.copyfile('/var/lib/lxc/basesys/rootfs/bin/echo', '/var/lib/lxc/basesys/rootfs/sbin/modprobe')
 
     for host in conf['hosts']:
         print("[%s]" % host['name'])
@@ -171,20 +169,9 @@ def start():
         a = augeas.Augeas(root="/var/lib/lxc/%s/rootfs" % host['name'])
         a.set("/files/etc/hostname/hostname", "%s" % host['name'])
         a.set("/files/etc/default/puppet/START", "yes")
-        a.set("/files/etc/puppet/puppet.conf/main/server", "%s.%s" % (conf['general']['puppet_host'], conf['network']['domain']))
-        a.set("/files/etc/puppet/puppet.conf/master/storeconfigs", "true")
-        a.set("/files/etc/puppet/puppet.conf/master/dbadapter", "sqlite3")
         a.save()
 
-        if host['name'] == conf['general']['puppet_host']:
-            print("    copying Puppet configuration")
-            subprocess.call(['rsync', '-a', '%s/' % conf['general']['puppet_cfg_dir'], "/var/lib/lxc/%s/rootfs/etc/puppet" % host['name']])
-            fd = open('/var/lib/lxc/%s/rootfs/etc/puppet/autosign.conf' % host['name'], 'w')
-            fd.write("*.%s\n" % conf['network']['domain'])
-
-
         setup_ssh_key(conf, host)
-
 
         print("    launching")
         subprocess.call(['lxc-start', '--daemon', '--console-log', '/tmp/lxc-%s.log' % host['name'], '-n', host['name'] ])
