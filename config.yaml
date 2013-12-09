@@ -1,50 +1,50 @@
 network:
     domain: enovance.com
     bridge: virbr1
-    gateway: 10.68.0.1
+    gateway: 192.168.0.1
 general:
     puppet_host: os-ci-test4
-    puppet_cfg_dir: /home/goneri/enovance/puppet-edeploy
-    ssh_key: /home/goneri/.ssh/id_rsa.pub
+    puppet_cfg_dir: /home/sbadia/dev/enovance.com/lxc-edeploy/
+    ssh_key: /home/sbadia/.ssh/id_rsa_seb.pub
 edeploy:
     dir: /var/lib/debootstrap/install/D7-F.1.0.0/openstack-full
 hosts:
   -
-    address: 10.68.0.45
+    address: 192.168.0.45
     name: os-ci-test1
   -
-    address: 10.68.0.46
+    address: 192.168.0.46
     name: os-ci-test2
   -
-    address: 10.68.0.47
+    address: 192.168.0.47
     name: os-ci-test3
   -
-    address: 10.68.0.48
+    address: 192.168.0.48
     name: os-ci-test4
   -
-    address: 10.68.0.49
+    address: 192.168.0.49
     name: os-ci-test5
   -
-    address: 10.68.0.50
+    address: 192.168.0.50
     name: os-ci-test6
   -
-    address: 10.68.0.51
+    address: 192.168.0.51
     name: os-ci-test7
   -
-    address: 10.68.0.52
+    address: 192.168.0.52
     name: os-ci-test8
   -
-    address: 10.68.0.53
+    address: 192.168.0.53
     name: os-ci-test9
   -
-    address: 10.68.0.54
+    address: 192.168.0.54
     name: os-ci-test10
   -
-    address: 10.68.0.55
+    address: 192.168.0.55
     name: os-ci-test11
   -
-    address: 10.68.0.56
+    address: 192.168.0.56
     name: os-ci-test12
   -
-    address: 10.68.0.57
+    address: 192.168.0.57
     name: os-ci-test13

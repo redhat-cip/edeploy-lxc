@@ -43,7 +43,7 @@ For example `/etc/libvirt/qemu/networks/enovance0.xml`:
   </forward>
   <bridge name='virbr1' stp='on' delay='0'/>
   <mac address='52:54:00:dd:c7:2d'/>
-  <ip address='10.68.0.1' netmask='255.255.255.0'>
+  <ip address='192.168.0.1' netmask='255.255.255.0'>
   </ip>
 </network>
 ```
