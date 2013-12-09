@@ -122,6 +122,39 @@ def start():
                 "    netmask 255.255.255.0\n" +
                 "    gateway %s\n" % conf['network']['gateway'])
             netFd.close()
+        else:
+            fd = open('/var/lib/lxc/%s/rootfs/etc/init/lxc-sysinit.conf' % host['name'], 'w')
+            fd.write("start on startup\n" +
+                "env container\n" +
+                "pre-start script\n" +
+                "if [ \"x$container\" != \"xlxc\" -a \"x$container\" != \"xlibvirt\" ]; then\n" +
+                "stop;\n" +
+                "fi\n" +
+                "initctl start tty TTY=console\n" +
+                "rm -f /var/lock/subsys/*\n" +
+                "rm -f /var/run/*.pid\n" +
+                "telinit 3\n" +
+                "exit 0;\n" +
+                "end script\n"
+            )
+            fd.close()
+
+            fd = open('/var/lib/lxc/%s/rootfs/etc/sysconfig/network-scripts/ifcfg-eth0' % host['name'], 'w')
+            fd.write(
+                "DEVICE=eth0\n" +
+                "ONBOOT=yes\n" +
+                "BOOTPROTO=static\n" +
+                "IPADDR=%s\n" % host['address'] +
+                "NETMASK=255.255.255.0\n" +
+                "GATEWAY=%s\n" % conf['network']['gateway']
+            )
+            fd.close()
+            fd = open('/var/lib/lxc/%s/rootfs/etc/sysconfig/network' % host['name'], 'w')
+            fd.write(
+                "NETWORKING=yes\n" +
+                "HOSTNAME=%s.%s\n" % (host['name'], conf['network']['domain'])
+            )
+            fd.close()
 
         hostFd = open('/var/lib/lxc/%s/rootfs/etc/hosts' % host['name'], 'w')
         hostFd.write(
