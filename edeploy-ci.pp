@@ -10,11 +10,13 @@ node /edeploy-ci/ {
   }
 
   libvirt::network { 'enoci0':
-    forward_mode => 'nat',
-    forward_dev  => 'eth0',
-    autostart    => true,
-    bridge       => 'virbr1',
-    ip           => [$virt_net],
+    forward_mode       => 'nat',
+    forward_interfaces => ['eth0'],
+    forward_dev        => 'eth0',
+    autostart          => true,
+    bridge             => 'virbr1',
+    ip                 => [$virt_net],
+    mac                => $::macaddress_eth0,
   }
 
 }
