@@ -1,5 +1,12 @@
 #!/bin/sh
 
+# In order to avoid SSH complaining about dangling host ssh keys, you
+# can add this in your ~/.ssh/config
+#
+# host 192.168.134.*
+#     stricthostkeychecking no
+#     userknownhostsfile=/dev/null
+
 set -e
 
 ~/enovance/puppet-edeploy/update.sh
