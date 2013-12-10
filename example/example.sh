@@ -9,7 +9,19 @@
 
 set -e
 
-~/enovance/puppet-edeploy/update.sh
+[ -d manifests ] || git clone gitolite@git.labs.enovance.com:openstack-puppet-ci.git manifests
+cd manifests
+git pull
+cd ..
+
+[ -d modules ] || git clone git@git.labs.enovance.com:puppet.git modules
+cd modules
+git pull
+git submodule init
+git submodule sync
+git submodule update
+cd ..
+
 sudo ./edeploy-lxc restart
 
 rsync -av manifests modules root@192.168.134.48:/etc/puppet
