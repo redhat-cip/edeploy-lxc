@@ -3,7 +3,7 @@
 # In order to avoid SSH complaining about dangling host ssh keys, you
 # can add this in your ~/.ssh/config
 #
-# host 192.168.134.*
+# host os-ci-test*
 #     stricthostkeychecking no
 #     userknownhostsfile=/dev/null
 
@@ -24,20 +24,20 @@ cd ..
 
 sudo ../edeploy-lxc --config config.yaml restart
 
-rsync -av manifests modules root@192.168.134.48:/etc/puppet
-ssh root@192.168.134.48 service mysqld restart
-echo "create database puppet;" | ssh root@192.168.134.48 mysql -uroot
-echo "grant all privileges on puppet.* to puppet@localhost identified by 'password';" | ssh root@192.168.134.48 mysql -uroot
-ssh root@192.168.134.48 yum install -y ruby-mysql rubygem-activerecord
+rsync -av manifests modules root@os-ci-test4.lab:/etc/puppet
+ssh root@os-ci-test4.lab service mysqld restart
+echo "create database puppet;" | ssh root@os-ci-test4.lab mysql -uroot
+echo "grant all privileges on puppet.* to puppet@localhost identified by 'password';" | ssh root@os-ci-test4.lab mysql -uroot
+ssh root@os-ci-test4.lab yum install -y ruby-mysql rubygem-activerecord
 # https://ask.puppetlabs.com/question/3853/error-400-on-server-failed-to-submit-replace-facts-command-connection-refused/
 
 sudo bash -c 'echo *.enovance.com > /var/lib/lxc/os-ci-test4/rootfs/etc/puppet/autosign.conf'
-ssh root@192.168.134.48 augtool set '/files/etc/puppet/puppet.conf/master/storeconfigs' 'true'
-ssh root@192.168.134.48 augtool set '/files/etc/puppet/puppet.conf/master/dbadapter' 'mysql'
-ssh root@192.168.134.48 augtool set '/files/etc/puppet/puppet.conf/master/dbuser' 'puppet'
-ssh root@192.168.134.48 augtool set '/files/etc/puppet/puppet.conf/master/dbpassword' 'password'
-ssh root@192.168.134.48 augtool set '/files/etc/puppet/puppet.conf/master/dbserver' 'localhost'
-ssh root@192.168.134.48 puppet master
+ssh root@os-ci-test4.lab augtool set '/files/etc/puppet/puppet.conf/master/storeconfigs' 'true'
+ssh root@os-ci-test4.lab augtool set '/files/etc/puppet/puppet.conf/master/dbadapter' 'mysql'
+ssh root@os-ci-test4.lab augtool set '/files/etc/puppet/puppet.conf/master/dbuser' 'puppet'
+ssh root@os-ci-test4.lab augtool set '/files/etc/puppet/puppet.conf/master/dbpassword' 'password'
+ssh root@os-ci-test4.lab augtool set '/files/etc/puppet/puppet.conf/master/dbserver' 'localhost'
+ssh root@os-ci-test4.lab puppet master
 
 for i in `cat config.yaml|awk '/^ +address: 192.168.134./ {print $2}'`; do
     ssh root@$i augtool set '/files/etc/puppet/puppet.conf/main/server' 'os-ci-test4.enovance.com'
