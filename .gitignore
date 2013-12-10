@@ -1,3 +1,4 @@
 *~
-puppet/ext-modules/
-.tmp/
+*.swp
+example/modules
+example/manifests
