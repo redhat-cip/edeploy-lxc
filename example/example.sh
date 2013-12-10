@@ -22,7 +22,7 @@ git submodule sync
 git submodule update
 cd ..
 
-sudo ./edeploy-lxc restart
+sudo ../edeploy-lxc --config config.yaml restart
 
 rsync -av manifests modules root@192.168.134.48:/etc/puppet
 ssh root@192.168.134.48 service mysqld restart
