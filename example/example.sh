@@ -14,7 +14,7 @@ cd manifests
 git pull
 cd ..
 
-[ -d modules ] || git clone git@git.labs.enovance.com:puppet.git -b openstack-havana/master modules
+[ -d modules ] || git clone git@git.labs.enovance.com:puppet.git -b openstack-havana/master --recursive modules
 cd modules
 git pull
 git submodule init
