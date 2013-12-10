@@ -38,14 +38,14 @@ Bridge has to be create first. You can use libvirt for that or do it manually.
 For example `/etc/libvirt/qemu/networks/enovance0.xml`:
 ```xml
 <network>
-  <name>enovance0</name>
-  <uuid>bf1c0ff4-a3b1-4358-bd7c-3195c7fcd789</uuid>
-  <forward dev='wlan0' mode='nat'>
-    <interface dev='wlan0'/>
+  <name>virbr1</name>
+  <uuid>bf1c0ff4-a3b1-4357-bd7c-3195c7fcd789</uuid>
+  <forward dev='eth0' mode='nat'>
+    <interface dev='eth0'/>
   </forward>
   <bridge name='virbr1' stp='on' delay='0'/>
   <mac address='52:54:00:dd:c7:2d'/>
-  <ip address='192.168.0.1' netmask='255.255.255.0'>
+  <ip address='192.168.134.1' netmask='255.255.255.0'>
   </ip>
 </network>
 ```

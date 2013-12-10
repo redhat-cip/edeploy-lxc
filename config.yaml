@@ -1,33 +1,33 @@
 network:
     domain: enovance.com
     bridge: virbr1
-    gateway: 192.168.0.1
+    gateway: 192.168.134.1
 general:
     ssh_key: /home/goneri/.ssh/id_rsa.pub
 edeploy:
     dir: /var/lib/debootstrap/install/centos-F.1.0.0/openstack-full
 hosts:
   -
-    address: 10.68.0.48
+    address: 192.168.134.48
     name: os-ci-test4
   -
-    address: 10.68.0.51
+    address: 192.168.134.51
     name: os-ci-test7
   -
-    address: 192.168.0.52
+    address: 192.168.134.52
     name: os-ci-test8
   -
-    address: 192.168.0.53
+    address: 192.168.134.53
     name: os-ci-test9
   -
-    address: 192.168.0.54
+    address: 192.168.134.54
     name: os-ci-test10
   -
-    address: 192.168.0.55
+    address: 192.168.134.55
     name: os-ci-test11
   -
-    address: 192.168.0.56
+    address: 192.168.134.56
     name: os-ci-test12
   -
-    address: 192.168.0.57
+    address: 192.168.134.57
     name: os-ci-test13
