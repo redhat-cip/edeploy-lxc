@@ -9,12 +9,12 @@
 
 set -e
 
-[ -d manifests ] || git clone gitolite@git.labs.enovance.com:openstack-puppet-ci.git manifests
+[ -d manifests ] || git clone gitolite@git.labs.enovance.com:openstack-puppet-ci.git -b master manifests
 cd manifests
 git pull
 cd ..
 
-[ -d modules ] || git clone git@git.labs.enovance.com:puppet.git modules
+[ -d modules ] || git clone git@git.labs.enovance.com:puppet.git -b openstack-havana/master modules
 cd modules
 git pull
 git submodule init
