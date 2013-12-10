@@ -39,7 +39,7 @@ ssh root@192.168.134.48 augtool set '/files/etc/puppet/puppet.conf/master/dbpass
 ssh root@192.168.134.48 augtool set '/files/etc/puppet/puppet.conf/master/dbserver' 'localhost'
 ssh root@192.168.134.48 puppet master
 
-for i in `cat config.yaml|awk '/^ +address: 10.68./ {print $2}'`; do
+for i in `cat config.yaml|awk '/^ +address: 192.168.134./ {print $2}'`; do
     ssh root@$i augtool set '/files/etc/puppet/puppet.conf/main/server' 'os-ci-test4.enovance.com'
     ssh root@$i cp /bin/false /usr/bin/yum
     ssh root@$i cp /bin/false /usr/bin/apt-get
