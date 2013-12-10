@@ -10,10 +10,10 @@
 set -xe
 
 # For git over ssh
-echo 'StrictHostKeyChecking=no' | sudo tee -a .ssh/config
+echo 'StrictHostKeyChecking=no' | sudo tee -a /home/$USER/.ssh/config
 
 # Setup hosts file
-sudo cp hosts > /etc/hosts
+sudo cp hosts /etc/hosts
 
 # Packages pre-requists packages
 sudo apt-get install -y --force-yes -q dnsmasq iptables libvirt-bin \
