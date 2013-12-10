@@ -1,4 +1,10 @@
 # /etc/hosts
+
+127.0.0.1 localhost
+::1     localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+
 10.68.0.45 os-ci-test1.ring.enovance.com os-ci-test1.ring
 10.68.0.46 os-ci-test2.ring.enovance.com os-ci-test2.ring
 10.68.0.47 os-ci-test3.ring.enovance.com os-ci-test3.ring
