@@ -55,9 +55,6 @@ def stop():
 
 def start():
 
-    my_env = os.environ
-    my_env["SUITE"] = "wheezy"
-
     if not os.path.exists('/var/lib/lxc/basesys/rootfs'):
         os.makedirs('/var/lib/lxc/basesys/rootfs')
     if not os.path.exists('/var/lib/lxc/basesys/rootfs/dev/pts'):
