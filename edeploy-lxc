@@ -78,6 +78,7 @@ def start():
         os.makedirs(aufs_rw_dir)
 
         subprocess.call(['mount', '-t', 'aufs', '-o', 'br=%s:%s' % (aufs_rw_dir, '/var/lib/lxc/basesys'), 'none', lxc_dir ])
+        #mount -t aufs -o br=/tmp/base_aufs/os-ci-test4:/var/lib/lxc/basesys none /var/lib/lxc/os-ci-test4
 
 
         lxcConfFd = open('/var/lib/lxc/%s/config' % host['name'], 'w')
@@ -169,7 +170,7 @@ def start():
         setup_ssh_key(conf, host)
 
         print("    launching")
-        subprocess.call(['lxc-start', '--daemon', '--console-log', '/tmp/lxc-%s.log' % host['name'], '-n', host['name'] ])
+        subprocess.call(['lxc-start', '-d', '-L', '/tmp/lxc-%s.log' % host['name'], '-n', host['name'] ])
 
 parser = argparse.ArgumentParser()
 parser.add_argument('action', help='action', choices=['stop', 'start', 'restart'])
