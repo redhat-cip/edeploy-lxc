@@ -50,7 +50,9 @@ For example `/etc/libvirt/qemu/networks/enovance0.xml`:
 </network>
 ```
 
-### Working LXC
+### How to enable LXC
+
+#### Debian Testing/Sid
 
 * Enable cgroup in `/etc/default/libvirt-bin`:
 
