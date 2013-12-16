@@ -134,6 +134,7 @@ for i in `cat config.yaml|awk '/^ +address: 192.168.134./ {print $2}'`; do
         service puppet stop'
 done
 
+set +e
 
 while true; do
     for i in `cat config.yaml|awk '/^ +address: 192.168.134./ {print $2}'`; do
