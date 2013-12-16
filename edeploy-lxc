@@ -25,6 +25,10 @@ import sys
 import shutil
 import argparse
 
+def start_bridge():
+    subprocess.call(['brctl', 'addbr', conf['network']['bridge'] ])
+    subprocess.call(['ifconfig', conf['network']['bridge'], conf['network']['gateway'] ])
+
 def setup_ssh_key(conf, host):
     if not 'ssh_key' in conf['general']:
             return
@@ -54,6 +58,7 @@ def stop():
                 shutil.rmtree(aufs_rw_dir)
 
 def start():
+    start_bridge()
 
     if not os.path.exists('/var/lib/lxc/basesys/rootfs'):
         os.makedirs('/var/lib/lxc/basesys/rootfs')
