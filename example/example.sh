@@ -119,7 +119,8 @@ ssh root@${PUPPETMASTER} " \
     augtool -s set '/files/etc/puppet/puppet.conf/master/dbuser' 'puppet' ; \
     augtool -s set '/files/etc/puppet/puppet.conf/master/dbpassword' 'password' ; \
     augtool -s set '/files/etc/puppet/puppet.conf/master/dbserver' 'localhost' : \
-    augtool -s set '/files/etc/puppet/puppet.conf/master/storeconfigs' 'true'"
+    augtool -s set '/files/etc/puppet/puppet.conf/master/storeconfigs' 'true'" \
+    || true # augtool returns != 0 on Debian even in case of success
 ssh root@${PUPPETMASTER} puppet master --ignorecache --no-usecacheonfailure --no-splay
 
 for i in `cat config.yaml|awk '/^ +address: 192.168.134./ {print $2}'`; do
