@@ -62,7 +62,6 @@ For example `/etc/libvirt/qemu/networks/enovance0.xml`:
 
 `GRUB_CMDLINE_LINUX="cgroup_enable=memory"` and run `update-grub2`
 
-
 ## supported platform
 
 - Debian 7
