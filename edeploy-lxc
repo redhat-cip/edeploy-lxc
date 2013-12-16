@@ -152,7 +152,7 @@ def start():
 
         hostFd = open('/var/lib/lxc/%s/rootfs/etc/hosts' % host['name'], 'w')
         hostFd.write(
-            "127.0.0.1 %s.%s %s localhost\n" % (host['name'], host['name'], conf['network']['domain']) +
+            "127.0.0.1 %s.%s %s localhost\n" % (host['name'], conf['network']['domain'], host['name']) +
             "::1     localhost ip6-localhost ip6-loopback\n" +
             "ff02::1 ip6-allnodes\n" +
             "ff02::2 ip6-allrouters\n"
