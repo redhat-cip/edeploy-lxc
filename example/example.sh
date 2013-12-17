@@ -112,7 +112,7 @@ ssh root@${PUPPETMASTER} service $mysqld restart
 echo "create database puppet;" | ssh root@${PUPPETMASTER} mysql -uroot
 echo "grant all privileges on puppet.* to puppet@localhost identified by 'password';" | ssh root@${PUPPETMASTER} mysql -uroot
 
-sudo bash -c 'echo *.lab > /var/lib/lxc/os-ci-test4/rootfs/etc/puppet/autosign.conf'
+sudo bash -c 'echo * > /var/lib/lxc/os-ci-test4/rootfs/etc/puppet/autosign.conf'
 ssh root@${PUPPETMASTER} " \
     augtool -s set '/files/etc/puppet/puppet.conf/master/storeconfigs' 'true' ; \
     augtool -s set '/files/etc/puppet/puppet.conf/master/dbadapter' 'mysql' ; \
