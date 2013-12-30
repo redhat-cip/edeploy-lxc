@@ -4,6 +4,15 @@
 bash ./example-ci.sh
 ```
 
+# Dependencies
+
+## Debian
+
+* bridge-utils
+* lxc
+* python-yaml
+* python-augeas
+
 ## Debug with puppet
 ```puppet
 puppet master --no-daemonize --debug
