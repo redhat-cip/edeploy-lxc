@@ -10,7 +10,7 @@
 set -v
 set -e
 
-DEBIAN=0
+DEBIAN=1
 PUPPETMASTER="192.168.134.48"
 CONFIG="config.yaml"
 
