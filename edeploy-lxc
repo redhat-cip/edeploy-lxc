@@ -29,6 +29,10 @@ def start_bridge():
     subprocess.call(['brctl', 'addbr', conf['network']['bridge'] ])
     subprocess.call(['ifconfig', conf['network']['bridge'], conf['network']['gateway'] ])
 
+def stop_bridge():
+    subprocess.call(['ifconfig', conf['network']['bridge'], 'down' ])
+    subprocess.call(['brctl', 'delbr', conf['network']['bridge'] ])
+
 def setup_ssh_key(conf, host):
     if not 'ssh_key' in conf['general']:
             return
@@ -56,6 +60,8 @@ def stop():
 
             if os.path.exists(aufs_rw_dir):
                 shutil.rmtree(aufs_rw_dir)
+
+    stop_bridge()
 
 def start():
     start_bridge()
