@@ -7,75 +7,12 @@
 #     stricthostkeychecking no
 #     userknownhostsfile=/dev/null
 
+set -v
 set -e
 
-show_usage() {
-  echo "Usage:
-    `basename $0`
-    `basename $0` -c config.yaml -p os-ci-test4.lab"
-    exit 1
-}
-
-SCRATCH=0
 DEBIAN=0
-
-while getopts "p:c:sdh" opt; do
-  case $opt in
-    p)
-      PUPPETMASTER=$OPTARG
-      ;;
-    c)
-      CONFIG=$OPTARG
-      ;;
-    s)
-      SCRATCH=1
-      ;;
-    d)
-      DEBIAN=1
-      ;;
-    h)
-      show_usage
-      ;;
-    *)
-      echo "go ahead"
-      exit 1
-      ;;
-  esac
-done
-
-if [ -z "$PUPPETMASTER" ];then
-  PUPPETMASTER="os-ci-test4.lab"
-fi
-
-if [ -z "$CONFIG" ];then
-  CONFIG="config.yaml"
-fi
-
-if [ $SCRATCH -eq 1 ]; then
-  # For git over ssh
-  echo 'StrictHostKeyChecking=no' | sudo tee -a /home/$USER/.ssh/config
-
-  # Setup hosts file
-  sudo cp hosts /etc/hosts
-
-  # Packages pre-requists packages
-  sudo apt-get install -y --force-yes -q dnsmasq iptables libvirt-bin \
-    lxc lvm2 reiserfsprogs bridge-utils debootstrap python-augeas \
-    rsync aufs-tools python libpython2.7 python-yaml
-
-  # Mount cgroup
-  sudo mkdir /cgroup
-  sudo mount -t cgroup cgroup /cgroup
-
-  # Define network (virbr and nat/bridge)
-  sudo virsh net-define ./network.xml
-  sudo virsh net-start enovance0
-
-  # Build eDeploy role
-  [ -d manifests ] || git clone git://github.com/enovance/edeploy.git
-  cd edeploy/build/
-  sudo make REPOSITORY=http://10.68.0.2:3142/ftp.fr.debian.org/debian DISTRO=wheezy NO_COMPRESSED_FILE=1 openstack-full
-fi
+PUPPETMASTER="192.168.134.48"
+CONFIG="config.yaml"
 
 [ -d manifests ] || git clone gitolite@git.labs.enovance.com:openstack-puppet-ci.git -b master manifests
 
@@ -94,7 +31,8 @@ cd ..
 sudo ../edeploy-lxc --config $CONFIG restart
 
 for lxc in `sudo lxc-ls|grep os-ci-test`; do
-    sudo cp -v /etc/resolv.conf /var/lib/lxc/$lxc/rootfs/etc/resolv.conf
+    sudo bash -c "echo nameserver 8.8.4.4 > /var/lib/lxc/$lxc/rootfs/etc/resolv.conf"
+    sudo bash -c "echo 'empty' > /var/lib/lxc/$lxc/rootfs/var/log/apt/history.log"
 done
 
 while ! rsync -av manifests modules root@${PUPPETMASTER}:/etc/puppet; do
