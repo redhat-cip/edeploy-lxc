@@ -39,7 +39,7 @@ while ! rsync -av manifests modules root@${PUPPETMASTER}:/etc/puppet; do
     sleep 1;
 done
 
-if [ $DEBIAN -eq 1 ]; then
+if [ -z $DEBIAN ]; then
     mysqld="mysqld"
     ssh root@${PUPPETMASTER} yum install -y ruby-mysql rubygem-activerecord
 else
