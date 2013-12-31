@@ -63,11 +63,10 @@ ssh root@${PUPPETMASTER} puppet master --ignorecache --no-usecacheonfailure --no
 
 for i in `cat config.yaml|awk '/^ +address: / {print $2}'`; do
     ssh root@$i 'cp /bin/false /usr/bin/yum ; \
-        cp /bin/true /usr/bin/apt-get ; \
         cp /bin/true /sbin/mkfs.xfs ; \
         cp /bin/true /sbin/mount.xfs ; \
         cp /bin/true /usr/bin/ovs-vsctl ; \
-        chmod -x /usr/lib/apt/methods/http ; \
+        chmod +x /usr/lib/apt/methods/http ; \
         apt-get install --yes ruby-mysql ; \
         service puppet stop'
 done
