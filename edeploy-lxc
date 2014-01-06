@@ -105,8 +105,6 @@ def start():
             "lxc.cgroup.devices.allow = c 1:5 rwm\n" +
             "lxc.cgroup.devices.allow = c 5:1 rwm\n" +
             "lxc.cgroup.devices.allow = c 5:0 rwm\n" +
-            "lxc.cgroup.devices.allow = c 4:0 rwm\n" +
-            "lxc.cgroup.devices.allow = c 4:1 rwm\n" +
             "lxc.cgroup.devices.allow = c 1:9 rwm\n" +
             "lxc.cgroup.devices.allow = c 1:8 rwm\n" +
             "lxc.cgroup.devices.allow = c 136:* rwm\n" +
