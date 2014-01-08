@@ -31,8 +31,8 @@ cd ..
 sudo ../edeploy-lxc --config $CONFIG restart
 
 for lxc in `sudo lxc-ls|grep os-ci-test`; do
-    sudo bash -c "echo nameserver 8.8.4.4 > /var/lib/lxc/$lxc/rootfs/etc/resolv.conf"
-    sudo bash -c "echo 'empty' > /var/lib/lxc/$lxc/rootfs/var/log/apt/history.log"
+    sudo bash -c "echo $(cat /etc/resolv.conf|grep nameserver|tail -1) > /var/lib/lxc/${lxc}/rootfs/etc/resolv.conf"
+    sudo bash -c "echo 'empty' > /var/lib/lxc/${lxc}/rootfs/var/log/apt/history.log"
 done
 
 while ! rsync -av manifests modules root@${PUPPETMASTER}:/etc/puppet; do
