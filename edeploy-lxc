@@ -121,7 +121,8 @@ def start():
             "lxc.cgroup.devices.allow = c 5:2 rwm\n" +
             "lxc.cgroup.devices.allow = c 254:0 rwm\n" +
             "lxc.mount.entry = proc proc proc nodev,noexec,nosuid 0 0\n" +
-            "lxc.mount.entry = sysfs sys sysfs defaults  0 0\n")
+            "lxc.mount.entry = sysfs sys sysfs defaults  0 0\n" +
+            "lxc.cgroup.memory.limit_in_bytes = 536870912")
         lxcConfFd.close()
 
         debian_interfaces = '/var/lib/lxc/%s/rootfs/etc/network/interfaces' % host['name']
