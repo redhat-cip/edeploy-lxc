@@ -48,7 +48,11 @@ def stop():
 
         aufs_rw_dir = "/tmp/base_aufs/%s" % host['name']
         lxc_dir = "/var/lib/lxc/%s" % host['name']
-        subprocess.call(['lxc-stop', '-n', host['name'] ])
+        try:
+            subprocess.call(['lxc-kill', '-n', host['name'] ])
+            subprocess.call(['lxc-stop', '-n', host['name'] ])
+        except:
+            print "foo"# nothing
 
         if os.path.exists(lxc_dir):
             print("[%s]" % host['name'])
@@ -83,10 +87,16 @@ def start():
 
         aufs_rw_dir = "/tmp/base_aufs/%s" % host['name']
         lxc_dir = "/var/lib/lxc/%s" % host['name']
-        subprocess.call(['lxc-stop', '-n', host['name'] ])
-
-        os.makedirs(lxc_dir)
-        os.makedirs(aufs_rw_dir)
+        if os.path.exists(lxc_dir):
+            try:
+                print "foo"
+                subprocess.call(['lxc-kill', '-n', host['name'] ])
+                subprocess.call(['lxc-stop', '-n', host['name'] ])
+            except:
+                print "foo"# nothing
+        else:
+            os.makedirs(lxc_dir)
+            os.makedirs(aufs_rw_dir)
 
         subprocess.call(['mount', '-t', 'aufs', '-o', 'br=%s:%s' % (aufs_rw_dir, '/var/lib/lxc/basesys'), 'none', lxc_dir ])
         #mount -t aufs -o br=/tmp/base_aufs/os-ci-test4:/var/lib/lxc/basesys none /var/lib/lxc/os-ci-test4
