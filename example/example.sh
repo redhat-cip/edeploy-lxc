@@ -14,7 +14,7 @@ DEBIAN=1
 PUPPETMASTER="192.168.134.48"
 CONFIG="config.yaml"
 
-[ -d manifests ] || git clone gitolite@git.labs.enovance.com:openstack-puppet-ci.git -b master manifests
+[ -d manifests ] || git clone git@github.com:enovance/openstack-puppet-ci.git -b master manifests
 
 cd manifests
 git pull
