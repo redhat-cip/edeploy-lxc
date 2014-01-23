@@ -120,6 +120,7 @@ def start():
             "lxc.cgroup.devices.allow = c 136:* rwm\n" +
             "lxc.cgroup.devices.allow = c 5:2 rwm\n" +
             "lxc.cgroup.devices.allow = c 254:0 rwm\n" +
+            "lxc.cgroup.devices.allow = b 7:* rwm # /dev/loop\n" +
             "lxc.mount.entry = proc proc proc nodev,noexec,nosuid 0 0\n" +
             "lxc.mount.entry = sysfs sys sysfs defaults  0 0\n" +
             "lxc.cgroup.memory.limit_in_bytes = 536870912")
