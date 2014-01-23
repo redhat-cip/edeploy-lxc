@@ -1,6 +1,6 @@
 network:
-    domain: lab
-    bridge: virbr1
+    domain: lab.enovance.com
+    bridge: bibi0
     gateway: 192.168.134.1
 general:
     ssh_key: /home/goneri/.ssh/id_rsa.pub
@@ -8,8 +8,20 @@ edeploy:
     dir: /var/lib/debootstrap/install/D7-H.1.0.0/openstack-full
 hosts:
   -
+    address: 192.168.134.45
+    name: os-ci-test1
+  -
+    address: 192.168.134.46
+    name: os-ci-test2
+  -
+    address: 192.168.134.47
+    name: os-ci-test3
+  -
     address: 192.168.134.48
     name: os-ci-test4
+  -
+    address: 192.168.134.48
+    name: os-ci-test5
   -
     address: 192.168.134.51
     name: os-ci-test7
