@@ -46,3 +46,15 @@ hosts:
   -
     address: 192.168.134.57
     name: os-ci-test13
+  -
+    address: 192.168.134.58
+    name: os-ci-test14
+  -
+    address: 192.168.134.59
+    name: os-ci-test15
+  -
+    address: 192.168.134.60
+    name: os-ci-test16
+  -
+    address: 192.168.134.61
+    name: os-ci-test17
