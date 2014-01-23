@@ -5,20 +5,6 @@
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 
-10.68.0.45 os-ci-test1.ring.enovance.com os-ci-test1.ring
-10.68.0.46 os-ci-test2.ring.enovance.com os-ci-test2.ring
-10.68.0.47 os-ci-test3.ring.enovance.com os-ci-test3.ring
-10.68.0.48 os-ci-test4.ring.enovance.com os-ci-test4.ring
-10.68.0.49 os-ci-test5.ring.enovance.com os-ci-test5.ring
-10.68.0.50 os-ci-test6.ring.enovance.com os-ci-test6.ring
-10.68.0.51 os-ci-test7.ring.enovance.com os-ci-test7.ring
-10.68.0.52 os-ci-test8.ring.enovance.com os-ci-test8.ring
-10.68.0.53 os-ci-test9.ring.enovance.com os-ci-test9.ring
-10.68.0.54 os-ci-test10.ring.enovance.com os-ci-test10.ring
-10.68.0.55 os-ci-test11.ring.enovance.com os-ci-test11.ring
-10.68.0.56 os-ci-test12.ring.enovance.com os-ci-test12.ring
-10.68.0.57 os-ci-test13.ring.enovance.com os-ci-test13.ring
-
 192.168.134.45 os-ci-test1.lab.enovance.com os-ci-test1.lab
 192.168.134.46 os-ci-test2.lab.enovance.com os-ci-test2.lab
 192.168.134.47 os-ci-test3.lab.enovance.com os-ci-test3.lab
@@ -32,17 +18,3 @@ ff02::2 ip6-allrouters
 192.168.134.55 os-ci-test11.lab.enovance.com os-ci-test11.lab
 192.168.134.56 os-ci-test12.lab.enovance.com os-ci-test12.lab
 192.168.134.57 os-ci-test13.lab.enovance.com os-ci-test13.lab
-
-10.68.0.10 os-ci-test1-ipmi.ring.enovance.com os-ci-test1-ipmi
-10.68.0.11 os-ci-test2-ipmi.ring.enovance.com os-ci-test2-ipmi
-10.68.0.12 os-ci-test3-ipmi.ring.enovance.com os-ci-test3-ipmi
-10.68.0.13 os-ci-test4-ipmi.ring.enovance.com os-ci-test4-ipmi
-10.68.0.14 os-ci-test5-ipmi.ring.enovance.com os-ci-test5-ipmi
-10.68.0.15 os-ci-test6-ipmi.ring.enovance.com os-ci-test6-ipmi
-10.68.0.16 os-ci-test7-ipmi.ring.enovance.com os-ci-test7-ipmi
-10.68.0.17 os-ci-test8-ipmi.ring.enovance.com os-ci-test8-ipmi
-10.68.0.18 os-ci-test9-ipmi.ring.enovance.com os-ci-test9-ipmi
-10.68.0.19 os-ci-test10-ipmi.ring.enovance.com os-ci-test10-ipmi
-10.68.0.20 os-ci-test11-ipmi.ring.enovance.com os-ci-test11-ipmi
-10.68.0.21 os-ci-test12-ipmi.ring.enovance.com os-ci-test12-ipmi
-10.68.0.22 os-ci-test13-ipmi.ring.enovance.com os-ci-test13-ipmi
