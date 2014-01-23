@@ -20,7 +20,7 @@ cd manifests
 git pull
 cd ..
 
-[ -d modules ] || git clone git@git.labs.enovance.com:puppet.git -b openstack-havana/master --recursive modules
+[ -d modules ] || git clone gitolite@dev.ring.enovance.com:puppet.git -b openstack-havana/master --recursive modules
 cd modules
 git pull
 git submodule init
