@@ -31,6 +31,10 @@ has to deploy 6 differents virtual machines.
 * python-augeas
 * python-yaml
 
+## Warning
+
+_Access to host loopback devices is possible from the containers (RW)._
+
 ### Network
 
 Bridge has to be create first. You can use libvirt for that or do it manually.
