@@ -3,8 +3,11 @@ network:
     bridge: bibi0
     gateway: 192.168.134.1
 general:
-    ssh_key: /home/goneri/.ssh/id_rsa.pub
+    #ssh_key: /home/goneri/.ssh/id_rsa.pub
+    ssh_key: /home/sbadia/.ssh/id_rsa_seb.pub
 edeploy:
+    #dir: /var/lib/debootstrap/install/RH6.5-H.1.0.0/openstack-full
+    #dir: /var/lib/debootstrap/install/U12-H.1.0.0/openstack-full
     dir: /var/lib/debootstrap/install/D7-H.1.0.0/openstack-full
 hosts:
   -
@@ -20,7 +23,7 @@ hosts:
     address: 192.168.134.48
     name: os-ci-test4
   -
-    address: 192.168.134.48
+    address: 192.168.134.49
     name: os-ci-test5
   -
     address: 192.168.134.51
