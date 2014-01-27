@@ -14,29 +14,15 @@ DEBIAN=1
 PUPPETMASTER="192.168.134.48"
 CONFIG="config.yaml"
 
-[ -d manifests ] || git clone git@github.com:enovance/openstack-puppet-ci.git -b master manifests
-
-cd manifests
-git pull
-cd ..
-
-[ -d modules ] || git clone gitolite@dev.ring.enovance.com:puppet.git -b openstack-havana/master --recursive modules
-cd modules
-git pull
-git submodule init
-git submodule sync
-git submodule update
-cd ..
 
 sudo ../edeploy-lxc --config $CONFIG restart
 
 for lxc in `sudo lxc-ls|grep os-ci-test`; do
+    if -f "/var/lib/lxc/${lxc}/rootfs/var/lib/dpkg/info/openssh-server.postinst"; then
+        sudo chroot /var/lib/lxc/os-ci-test4/rootfs /var/lib/dpkg/info/openssh-server.postinst configure
+    fi
     sudo bash -c "echo $(cat /etc/resolv.conf|grep nameserver|tail -1) > /var/lib/lxc/${lxc}/rootfs/etc/resolv.conf"
     sudo bash -c "echo 'empty' > /var/lib/lxc/${lxc}/rootfs/var/log/apt/history.log"
-done
-
-while ! rsync -av manifests modules root@${PUPPETMASTER}:/etc/puppet; do
-    sleep 1;
 done
 
 if [ -z $DEBIAN ]; then
@@ -73,11 +59,4 @@ done
 
 set +e
 
-while true; do
-    for i in `cat config.yaml|awk '/^ +address: / {print $2}'`; do
-        ssh root@$i puppet agent --debug \
-            --ignorecache --no-daemonize \
-            --no-usecacheonfailure --onetime \
-            --server ${PUPPETMASTER}
-    done
-done
+./refresh.sh
