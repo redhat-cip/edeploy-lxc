@@ -5,7 +5,7 @@ container.
 
 It will deploy a set of LXC containers based on:
 
-- a eDeploy role
+- eDeploy roles
 - IP and host from a YAML conf
 
 ## use case
