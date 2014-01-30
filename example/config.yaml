@@ -6,55 +6,71 @@ general:
     #ssh_key: /home/goneri/.ssh/id_rsa.pub
     ssh_key: /home/sbadia/.ssh/id_rsa_seb.pub
 edeploy:
-    #dir: /var/lib/debootstrap/install/RH6.5-H.1.0.0/openstack-full
-    #dir: /var/lib/debootstrap/install/U12-H.1.0.0/openstack-full
-    dir: /var/lib/debootstrap/install/D7-H.1.0.0/openstack-full
+    #dir: /var/lib/debootstrap/install/RH6.5-H.1.0.0
+    #dir: /var/lib/debootstrap/install/U12-H.1.0.0
+    dir: /var/lib/debootstrap/install/D7-H.1.0.0
 hosts:
   -
     address: 192.168.134.45
     name: os-ci-test1
+    role: openstack-full
   -
     address: 192.168.134.46
     name: os-ci-test2
+    role: openstack-full
   -
     address: 192.168.134.47
     name: os-ci-test3
+    role: openstack-full
   -
     address: 192.168.134.48
     name: os-ci-test4
+    role: puppet-master
   -
     address: 192.168.134.49
     name: os-ci-test5
+    role: openstack-full
   -
     address: 192.168.134.51
     name: os-ci-test7
+    role: openstack-full
   -
     address: 192.168.134.52
     name: os-ci-test8
+    role: openstack-full
   -
     address: 192.168.134.53
     name: os-ci-test9
+    role: openstack-full
   -
     address: 192.168.134.54
     name: os-ci-test10
+    role: openstack-full
   -
     address: 192.168.134.55
     name: os-ci-test11
+    role: openstack-full
   -
     address: 192.168.134.56
     name: os-ci-test12
+    role: openstack-full
   -
     address: 192.168.134.57
     name: os-ci-test13
+    role: openstack-full
   -
     address: 192.168.134.58
     name: os-ci-test14
+    role: openstack-full
   -
     address: 192.168.134.59
     name: os-ci-test15
+    role: openstack-full
   -
     address: 192.168.134.60
     name: os-ci-test16
+    role: openstack-full
   -
     address: 192.168.134.61
     name: os-ci-test17
+    role: openstack-full

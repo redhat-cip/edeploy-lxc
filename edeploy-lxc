@@ -70,17 +70,25 @@ def stop():
 def start():
     start_bridge()
 
-    if not os.path.exists('/var/lib/lxc/basesys/rootfs'):
-        os.makedirs('/var/lib/lxc/basesys/rootfs')
 
-    subprocess.call(['rsync', '-av', '--delete', '--numeric-ids', '%s/' % conf['edeploy']['dir'], '/var/lib/lxc/basesys/rootfs'])
-    subprocess.call(['tar', 'xf', '/usr/share/debootstrap/devices.tar.gz'], cwd='/var/lib/lxc/basesys/rootfs')
+    roles = []
+    
+    for host in conf['hosts']:
+        if host['role'] not in roles:
+            roles.append(host['role'])
 
-    if not os.path.exists('/var/lib/lxc/basesys/rootfs/dev/pts'):
-        os.makedirs('/var/lib/lxc/basesys/rootfs/dev/pts')
+    for role in roles:
+        rootfs = '/var/lib/lxc/%s/rootfs' % role
+        if not os.path.exists(rootfs):
+            os.makedirs(rootfs)
+        subprocess.call(['rsync', '-av', '--delete', '--numeric-ids', '%s/%s/' % (conf['edeploy']['dir'], role), rootfs])
+        subprocess.call(['tar', 'xf', '/usr/share/debootstrap/devices.tar.gz'], cwd=rootfs)
 
-    # work around for LXC bug, rmmod module on the host system
-    shutil.copyfile('/var/lib/lxc/basesys/rootfs/bin/echo', '/var/lib/lxc/basesys/rootfs/bin/kmod')
+        if not os.path.exists(rootfs + '/dev/pts'):
+            os.makedirs(rootfs + '/dev/pts')
+
+        # work around for LXC bug, rmmod module on the host system
+        shutil.copyfile(rootfs + '/bin/true', rootfs + '/bin/kmod')
 
     for host in conf['hosts']:
         print("[%s]" % host['name'])
@@ -98,7 +106,7 @@ def start():
             os.makedirs(lxc_dir)
             os.makedirs(aufs_rw_dir)
 
-        subprocess.call(['mount', '-t', 'aufs', '-o', 'br=%s:%s' % (aufs_rw_dir, '/var/lib/lxc/basesys'), 'none', lxc_dir ])
+        subprocess.call(['mount', '-t', 'aufs', '-o', 'br=%s:%s' % (aufs_rw_dir, '/var/lib/lxc/%s' % host['role']), 'none', lxc_dir ])
         #mount -t aufs -o br=/tmp/base_aufs/os-ci-test4:/var/lib/lxc/basesys none /var/lib/lxc/os-ci-test4
 
 
@@ -185,7 +193,6 @@ def start():
 
         a = augeas.Augeas(root="/var/lib/lxc/%s/rootfs" % host['name'])
         a.set("/files/etc/hostname/hostname", "%s" % host['name'])
-        a.set("/files/etc/default/puppet/START", "yes")
         a.save()
 
         setup_ssh_key(conf, host)
