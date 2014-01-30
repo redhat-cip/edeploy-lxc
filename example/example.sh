@@ -25,38 +25,38 @@ for lxc in `sudo lxc-ls|grep os-ci-test`; do
     sudo bash -c "echo 'empty' > /var/lib/lxc/${lxc}/rootfs/var/log/apt/history.log"
 done
 
-if [ -z $DEBIAN ]; then
-    mysqld="mysqld"
-    ssh root@${PUPPETMASTER} yum install -y ruby-mysql rubygem-activerecord
-else
-    mysqld="mysql"
-    ssh root@${PUPPETMASTER} apt-get install --yes ruby-mysql ruby-activerecord
-fi
-ssh root@${PUPPETMASTER} service $mysqld restart
-echo "create database puppet;" | ssh root@${PUPPETMASTER} mysql -uroot
-echo "grant all privileges on puppet.* to puppet@localhost identified by 'password';" | ssh root@${PUPPETMASTER} mysql -uroot
+#if [ -z $DEBIAN ]; then
+#    mysqld="mysqld"
+#    ssh root@${PUPPETMASTER} yum install -y ruby-mysql rubygem-activerecord
+#else
+#    mysqld="mysql"
+#    ssh root@${PUPPETMASTER} apt-get install --yes ruby-mysql ruby-activerecord
+#fi
+#ssh root@${PUPPETMASTER} service $mysqld restart
+#echo "create database puppet;" | ssh root@${PUPPETMASTER} mysql -uroot
+#echo "grant all privileges on puppet.* to puppet@localhost identified by 'password';" | ssh root@${PUPPETMASTER} mysql -uroot
 
-sudo bash -c 'echo "*" > /var/lib/lxc/os-ci-test4/rootfs/etc/puppet/autosign.conf'
-ssh root@${PUPPETMASTER} " \
-    augtool -s set '/files/etc/puppet/puppet.conf/master/storeconfigs' 'true' ; \
-    augtool -s set '/files/etc/puppet/puppet.conf/master/dbadapter' 'mysql' ; \
-    augtool -s set '/files/etc/puppet/puppet.conf/master/dbuser' 'puppet' ; \
-    augtool -s set '/files/etc/puppet/puppet.conf/master/dbpassword' 'password' ; \
-    augtool -s set '/files/etc/puppet/puppet.conf/master/dbserver' 'localhost' : \
-    augtool -s set '/files/etc/puppet/puppet.conf/master/storeconfigs' 'true'" \
-    || true # augtool returns != 0 on Debian even in case of success
-ssh root@${PUPPETMASTER} puppet master --ignorecache --no-usecacheonfailure --no-splay
-
+#sudo bash -c 'echo "*" > /var/lib/lxc/os-ci-test4/rootfs/etc/puppet/autosign.conf'
+#ssh root@${PUPPETMASTER} " \
+#    augtool -s set '/files/etc/puppet/puppet.conf/master/storeconfigs' 'true' ; \
+#    augtool -s set '/files/etc/puppet/puppet.conf/master/storeconfigs_backend' 'puppetdb' ; " \
+#    || true # augtool returns != 0 on Debian even in case of success
+#ssh root@${PUPPETMASTER} puppetdb-ssl-setup
+#ssh root@${PUPPETMASTER} sed -i 's,^ssl-host =.*,ssl-host = os-ci-test4.lab.enovance.com,' /etc/puppetdb/conf.d/jetty.ini
+#
+#ssh root@${PUPPETMASTER} service puppetdb restart
+#ssh root@${PUPPETMASTER} puppet master --ignorecache --no-usecacheonfailure --no-splay
+#
 for i in `cat config.yaml|awk '/^ +address: / {print $2}'`; do
-    ssh root@$i 'cp /bin/false /usr/bin/yum ; \
+    ssh root@$i '
         cp /bin/true /sbin/mkfs.xfs ; \
         cp /bin/true /sbin/mount.xfs ; \
         cp /bin/true /usr/bin/ovs-vsctl ; \
-        chmod +x /usr/lib/apt/methods/http ; \
-        apt-get install --yes ruby-mysql ; \
         service puppet stop'
 done
 
 set +e
 
+scp configure-puppet.sh root@${PUPPETMASTER}:
+ssh root@${PUPPETMASTER} bash /root/configure-puppet.sh
 ./refresh.sh
