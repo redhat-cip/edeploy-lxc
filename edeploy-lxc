@@ -197,6 +197,14 @@ def start():
 
         setup_ssh_key(conf, host)
 
+        if os.path.exists("%s.cloudinit" % host['role']):
+            print("    setting %s.cloudinit" % host['role'])
+            open('/var/lib/lxc/%s/rootfs/etc/cloud/cloud.cfg.d/10_%s.cfg' % (
+                host['name'], host['role']
+            ), 'w').write(
+                open("%s.cloudinit" % host['role']).read()
+            )
+
         print("    launching")
         subprocess.call(['lxc-start', '-d', '-L', '/tmp/lxc-%s.log' % host['name'], '-n', host['name'] ])
 
