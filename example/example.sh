@@ -22,6 +22,7 @@ for lxc in `sudo lxc-ls|grep os-ci-test`; do
         sudo chroot /var/lib/lxc/${lxc}/rootfs /var/lib/dpkg/info/openssh-server.postinst configure
     fi
     sudo bash -c "echo $(cat /etc/resolv.conf|grep nameserver|tail -1) > /var/lib/lxc/${lxc}/rootfs/etc/resolv.conf"
+    sudo bash -c "echo 192.168.134.253 os-ci-vip.lab.enovance.com >> /var/lib/lxc/${lxc}/rootfs/etc/hosts"
     sudo bash -c "echo 'empty' > /var/lib/lxc/${lxc}/rootfs/var/log/apt/history.log"
 done
 
