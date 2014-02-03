@@ -18,7 +18,7 @@ CONFIG="config.yaml"
 sudo ../edeploy-lxc --config $CONFIG restart
 
 for lxc in `sudo lxc-ls|grep os-ci-test`; do
-    if -f "/var/lib/lxc/${lxc}/rootfs/var/lib/dpkg/info/openssh-server.postinst"; then
+    if [ -f "/var/lib/lxc/${lxc}/rootfs/var/lib/dpkg/info/openssh-server.postinst" ]; then
         sudo chroot /var/lib/lxc/${lxc}/rootfs /var/lib/dpkg/info/openssh-server.postinst configure
     fi
     sudo bash -c "echo $(cat /etc/resolv.conf|grep nameserver|tail -1) > /var/lib/lxc/${lxc}/rootfs/etc/resolv.conf"
