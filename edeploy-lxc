@@ -197,12 +197,13 @@ def start():
 
         setup_ssh_key(conf, host)
 
-        if os.path.exists("%s.cloudinit" % host['role']):
-            print("    setting %s.cloudinit" % host['role'])
+        if 'cloudinit' in host:
+            cloudinit_name = os.path.basename(host['cloudinit']).replace('.cloudinit', '')
+            print("    setting cloudinit flat file datasource")
             open('/var/lib/lxc/%s/rootfs/etc/cloud/cloud.cfg.d/10_%s.cfg' % (
-                host['name'], host['role']
+                host['name'], cloudinit_name
             ), 'w').write(
-                open("%s.cloudinit" % host['role']).read()
+                open(host['cloudinit']).read()
             )
 
         print("    launching")

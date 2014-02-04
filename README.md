@@ -16,7 +16,7 @@ has to deploy 6 differents virtual machines.
 1. He prepares a conf.yaml file with:
     - the domain
     - the name of a bridge interface
-    - a list of virtual machine (IP and name)
+    - a list of virtual machine (IP, name, role and cloudinit file)
 2. He calls `edeploy-lxc start` as root
 3. Start the puppet master, for example:
     ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@10.68.0.48 puppet master --debug --no-daemonize
@@ -53,6 +53,14 @@ For example `/etc/libvirt/qemu/networks/enovance0.xml`:
   </ip>
 </network>
 ```
+
+## Cloud-init
+
+Custom cloud-init files can also be used per virtual machines. The file path
+must be references in the conf.yaml with the key 'cloudinit'.
+
+They will be copied to /etc/cloud/cloud.cfg.d/ in order to be used as a flat
+file data-source.
 
 ### How to enable LXC
 
