@@ -52,6 +52,7 @@ for i in `cat config.yaml|awk '/^ +address: / {print $2}'`; do
         cp /bin/true /sbin/mkfs.xfs ; \
         cp /bin/true /sbin/mount.xfs ; \
         cp /bin/true /usr/bin/ovs-vsctl ; \
+        cp /bin/true /sbin/parted ; \
         service puppet stop'
 done
 
