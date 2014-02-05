@@ -23,7 +23,10 @@ for i in 192.168.134.49 `cat config.yaml|awk '/^ +address: / {print $2}'`; do
         --no-usecacheonfailure --onetime \
         --debug \
         --server os-ci-test4.lab.enovance.com >  $LOGDIR/${i}.log 2>&1
-    cat $LOGDIR/${i}.log |grep Error | ansi2html -p > $LOGDIR/${i}.error.html
-    cat $LOGDIR/${i}.log | ansi2html -p > $LOGDIR/${i}.html
+    cat $LOGDIR/${i}.log |grep Error > /tmp/foo.log
+    if [ -s "/tmp/foo.log" ]; then
+        cat /tmp/foo.log | ansi2html -p | sed -r 's,background: black;,,i' > $LOGDIR/${i}.error.html
+    fi
+    cat $LOGDIR/${i}.log | ansi2html -p | sed -r 's,background: black;,,i' > $LOGDIR/${i}.html
 done
 echo "end: <strong>$(date)</strong><br />\n" >> $LOGDIR/HEADER.html
