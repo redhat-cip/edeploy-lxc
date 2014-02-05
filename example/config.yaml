@@ -29,7 +29,7 @@ hosts:
   -
     address: 192.168.134.49
     name: os-ci-test5
-    role: openstack-full
+    role: puppet-master
   -
     address: 192.168.134.51
     name: os-ci-test7
