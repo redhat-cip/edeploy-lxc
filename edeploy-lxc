@@ -200,12 +200,17 @@ def start():
         if 'cloudinit' in host:
             cloudinit_name = os.path.basename(host['cloudinit']).replace('.cloudinit', '')
             print("    setting cloudinit flat file datasource")
-            open('/var/lib/lxc/%s/rootfs/etc/cloud/cloud.cfg.d/10_%s.cfg' % (
-                host['name'], cloudinit_name
-            ), 'w').write(
-                open(host['cloudinit']).read()
-            )
+            nocloud_dir = '/var/lib/lxc/%s/rootfs/var/lib/cloud/seed/nocloud' % host['name']
+            if not os.path.exists(nocloud_dir):
+                os.makedirs(nocloud_dir)
+            open(os.path.join(nocloud_dir, 'user-data'), 'w').write(open(host['cloudinit']).read())
+            open(os.path.join(nocloud_dir, 'meta-data'), 'w').write('local-hostname: %s' % host['name'])
+            open('/var/lib/lxc/%s/rootfs/etc/cloud/cloud.cfg.d/90_dpkg.cfg' % (
+                    host['name'], ), 'w').write('''
+dsmod: local
 
+datasource_list: [ NoCloud ]
+''')
         print("    launching")
         subprocess.call(['lxc-start', '-d', '-L', '/tmp/lxc-%s.log' % host['name'], '-n', host['name'] ])
 
