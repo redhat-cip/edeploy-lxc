@@ -16,46 +16,64 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import glob
-import augeas
-import yaml
-import subprocess
-import os
-import sys
-import shutil
 import argparse
+import augeas
+import os
+import shutil
+import subprocess
+import yaml
 
 def start_bridge():
-    subprocess.call(['brctl', 'addbr', conf['network']['bridge'] ])
-    subprocess.call(['ifconfig', conf['network']['bridge'], conf['network']['gateway'] ])
+    for idx in range(get_len(conf['network']['bridge'])):
+        bridge = get_value(conf['network']['bridge'], idx)
+        subprocess.call(['brctl', 'addbr', bridge])
+        gateway = get_value(conf['network']['gateway'], idx)
+        if gateway:
+            subprocess.call(['ifconfig', bridge, gateway])
 
 def stop_bridge():
-    subprocess.call(['ifconfig', conf['network']['bridge'], 'down' ])
-    subprocess.call(['brctl', 'delbr', conf['network']['bridge'] ])
+    for idx in range(get_len(conf['network']['bridge'])):
+        bridge = get_value(conf['network']['bridge'], idx)
+        subprocess.call(['ifconfig', bridge, 'down'])
+        subprocess.call(['brctl', 'delbr', bridge])
 
 def setup_ssh_key(conf, host):
     if not 'ssh_key' in conf['general']:
-            return
+        return
 
-    ssh_dir = '/var/lib/lxc/%s/rootfs/root/.ssh/' % host['name']
+    ssh_dir = '/var/lib/lxc/%s/rootfs/root/.ssh/' % get_value(host['name'], 0)
     os.makedirs(ssh_dir)
     shutil.copyfile(conf['general']['ssh_key'], ssh_dir + '/authorized_keys')
 
+def get_value(val, idx):
+    if type(val) is tuple or type(val) is list:
+        return val[idx]
+    else:
+        if idx == 0:
+            return val
+        else:
+            return None
+
+def get_len(val):
+    if type(val) is tuple or type(val) is list:
+        return len(val)
+    else:
+        return 1
 
 def stop():
     print "stopping"
     for host in conf['hosts']:
-
-        aufs_rw_dir = "/tmp/base_aufs/%s" % host['name']
-        lxc_dir = "/var/lib/lxc/%s" % host['name']
+        hostname = get_value(host['name'], 0)
+        aufs_rw_dir = "/tmp/base_aufs/%s" % hostname
+        lxc_dir = "/var/lib/lxc/%s" % hostname
         try:
-            subprocess.call(['lxc-kill', '-n', host['name'] ])
-            subprocess.call(['lxc-stop', '-n', host['name'] ])
+            subprocess.call(['lxc-kill', '-n', hostname ])
+            subprocess.call(['lxc-stop', '-n', hostname ])
         except:
-            print "foo"# nothing
+            pass
 
         if os.path.exists(lxc_dir):
-            print("[%s]" % host['name'])
+            print("[%s]" % hostname)
             try:
                 subprocess.call(['umount', lxc_dir ])
             except:
@@ -78,46 +96,62 @@ def start():
             roles.append(host['role'])
 
     for role in roles:
-        rootfs = '/var/lib/lxc/%s/rootfs' % role
-        if not os.path.exists(rootfs):
-            os.makedirs(rootfs)
-        subprocess.call(['rsync', '-av', '--delete', '--numeric-ids', '%s/%s/' % (conf['edeploy']['dir'], role), rootfs])
-        subprocess.call(['tar', 'xf', '/usr/share/debootstrap/devices.tar.gz'], cwd=rootfs)
+        rootfs_dir = '/var/lib/lxc/%s/rootfs' % role
+        if not os.path.exists(rootfs_dir):
+            os.makedirs(rootfs_dir)
+        subprocess.call(['rsync',
+                         '-av',
+                         '--delete',
+                         '--numeric-ids',
+                         '%s/%s/' % (conf['edeploy']['dir'], role),
+                         rootfs_dir])
+        subprocess.call(['tar', 'xf', '/usr/share/debootstrap/devices.tar.gz'],
+                        cwd=rootfs_dir)
 
-        if not os.path.exists(rootfs + '/dev/pts'):
-            os.makedirs(rootfs + '/dev/pts')
+        if not os.path.exists(rootfs_dir + '/dev/pts'):
+            os.makedirs(rootfs_dir + '/dev/pts')
 
         # work around for LXC bug, rmmod module on the host system
-        shutil.copyfile(rootfs + '/bin/true', rootfs + '/bin/kmod')
+        shutil.copyfile(rootfs_dir + '/bin/true', rootfs_dir + '/bin/kmod')
 
     for host in conf['hosts']:
-        print("[%s]" % host['name'])
+        hostname = get_value(host['name'], 0)
+        print("[%s]" % hostname)
 
-        aufs_rw_dir = "/tmp/base_aufs/%s" % host['name']
-        lxc_dir = "/var/lib/lxc/%s" % host['name']
+        aufs_rw_dir = "/tmp/base_aufs/%s" % hostname
+        lxc_dir = "/var/lib/lxc/%s" % hostname
+        rootfs_dir = lxc_dir + '/rootfs'
+        
         if os.path.exists(lxc_dir):
             try:
                 print "foo"
-                subprocess.call(['lxc-kill', '-n', host['name'] ])
-                subprocess.call(['lxc-stop', '-n', host['name'] ])
+                subprocess.call(['lxc-kill', '-n', hostname ])
+                subprocess.call(['lxc-stop', '-n', hostname ])
             except:
-                print "foo"# nothing
+                pass
         else:
             os.makedirs(lxc_dir)
+            
+        if not os.path.exists(aufs_rw_dir):
             os.makedirs(aufs_rw_dir)
 
         subprocess.call(['mount', '-t', 'aufs', '-o', 'br=%s:%s' % (aufs_rw_dir, '/var/lib/lxc/%s' % host['role']), 'none', lxc_dir ])
         #mount -t aufs -o br=/tmp/base_aufs/os-ci-test4:/var/lib/lxc/basesys none /var/lib/lxc/os-ci-test4
 
 
-        lxcConfFd = open('/var/lib/lxc/%s/config' % host['name'], 'w')
-        lxcConfFd.write("lxc.network.type = veth\n" +
-            "lxc.network.flags = up\n" +
-            "lxc.network.link = %s\n" % conf['network']['bridge'] +
-            "lxc.rootfs = /var/lib/lxc/%s/rootfs\n" % host['name'] +
-            "lxc.tty = 4\n" +
+        lxcConfFd = open(lxc_dir + '/config', 'w')
+        for idx in range(get_len(conf['network']['bridge'])):
+            lxcConfFd.write('''lxc.network.type = veth
+lxc.network.flags = up
+lxc.network.link = %s
+lxc.network.name = eth%d
+
+''' % (get_value(conf['network']['bridge'], idx), idx))
+
+        lxcConfFd.write("lxc.rootfs = %s\n" % rootfs_dir +
+            "lxc.tty = 6\n" +
             "lxc.pts = 1024\n" +
-            "lxc.utsname = %s\n" % host['name'] +
+            "lxc.utsname = %s\n" % hostname +
             "lxc.cgroup.devices.deny = a\n" +
             "lxc.cgroup.devices.allow = c 1:3 rwm\n" +
             "lxc.cgroup.devices.allow = c 1:5 rwm\n" +
@@ -134,19 +168,26 @@ def start():
             "lxc.cgroup.memory.limit_in_bytes = 536870912")
         lxcConfFd.close()
 
-        debian_interfaces = '/var/lib/lxc/%s/rootfs/etc/network/interfaces' % host['name']
+        debian_interfaces = rootfs_dir + '/etc/network/interfaces'
         if os.path.exists(debian_interfaces):
             netFd = open(debian_interfaces, 'w')
-            netFd.write("auto lo\n" +
-                "iface lo inet loopback\n" +
-                "auto eth0\n" +
-                "iface eth0 inet static\n" +
-                "    address %s\n" % host['address'] +
-                "    netmask 255.255.255.0\n" +
-                "    gateway %s\n" % conf['network']['gateway'])
+            netFd.write("auto lo\n")
+            for idx in range(get_len(host['address'])):
+                address = get_value(host['address'], idx)
+                if address:
+                    netFd.write('''
+iface lo inet loopback
+auto eth%d
+iface eth%d inet static
+    address %s
+    netmask 255.255.255.0\n" +
+ ''' % (idx, idx, address))
+                    gateway = get_value(conf['network']['gateway'], idx)
+                    if gateway:
+                        netFd.write('    gateway %s\n' % gateway)
             netFd.close()
         else:
-            fd = open('/var/lib/lxc/%s/rootfs/etc/init/lxc-sysinit.conf' % host['name'], 'w')
+            fd = open(rootfs_dir + '/etc/init/lxc-sysinit.conf', 'w')
             fd.write("start on startup\n" +
                 "env container\n" +
                 "pre-start script\n" +
@@ -162,37 +203,51 @@ def start():
             )
             fd.close()
 
-            fd = open('/var/lib/lxc/%s/rootfs/etc/sysconfig/network-scripts/ifcfg-eth0' % host['name'], 'w')
-            fd.write(
-                "DEVICE=eth0\n" +
-                "ONBOOT=yes\n" +
-                "BOOTPROTO=static\n" +
-                "IPADDR=%s\n" % host['address'] +
-                "NETMASK=255.255.255.0\n" +
-                "GATEWAY=%s\n" % conf['network']['gateway']
-            )
-            fd.close()
-            fd = open('/var/lib/lxc/%s/rootfs/etc/sysconfig/network' % host['name'], 'w')
+            for idx in range(get_len(host['address'])):
+                address = get_value(host['address'], idx)
+                if address:
+                    fd = open(rootfs_dir + '/etc/sysconfig/network-scripts/ifcfg-eth%d'
+                              % idx, 'w')
+                    fd.write(
+                        "DEVICE=eth%d\n" % idx +
+                        "ONBOOT=yes\n" +
+                        "BOOTPROTO=static\n" +
+                        "IPADDR=%s\n" % address +
+                        "NETMASK=255.255.255.0\n")
+                    gateway = get_value(conf['network']['gateway'], idx)
+                    if gateway:
+                        fd.write(
+                            "GATEWAY=%s\n" % conf['network']['gateway'][idx]
+                            )
+                fd.close()
+            fd = open(rootfs_dir + '/etc/sysconfig/network', 'w')
             fd.write(
                 "NETWORKING=yes\n" +
-                "HOSTNAME=%s.%s\n" % (host['name'], conf['network']['domain'])
+                "HOSTNAME=%s.%s\n" % (hostname, conf['network']['domain'])
             )
             fd.close()
 
-        hostFd = open('/var/lib/lxc/%s/rootfs/etc/hosts' % host['name'], 'w')
+        hostFd = open(rootfs_dir + '/etc/hosts', 'w')
         hostFd.write(
-            "127.0.0.1 %s.%s %s localhost\n" % (host['name'], conf['network']['domain'], host['name']) +
+            "127.0.0.1 %s.%s %s localhost\n" % (hostname,
+                                                get_value(conf['network']['domain'], 0),
+                                                hostname) +
             "::1     localhost ip6-localhost ip6-loopback\n" +
             "ff02::1 ip6-allnodes\n" +
             "ff02::2 ip6-allrouters\n"
         )
         for h in conf['hosts']:
-            hostFd.write("%s %s.%s %s\n" % (h['address'], h['name'], conf['network']['domain'], h['name']))
-
+            for idx in range(get_len(h['name'])):
+                name = get_value(h['name'], idx)
+                address = get_value(h['address'], idx)
+                domain = get_value(conf['network']['domain'], idx) or \
+                    get_value(conf['network']['domain'], 0)
+                if name and address and domain:
+                    hostFd.write("%s %s.%s %s\n" % (address, name, domain, name))
         hostFd.close()
 
-        a = augeas.Augeas(root="/var/lib/lxc/%s/rootfs" % host['name'])
-        a.set("/files/etc/hostname/hostname", "%s" % host['name'])
+        a = augeas.Augeas(root=rootfs_dir)
+        a.set("/files/etc/hostname/hostname", "%s" % hostname)
         a.save()
 
         setup_ssh_key(conf, host)
@@ -200,19 +255,18 @@ def start():
         if 'cloudinit' in host:
             cloudinit_name = os.path.basename(host['cloudinit']).replace('.cloudinit', '')
             print("    setting cloudinit flat file datasource")
-            nocloud_dir = '/var/lib/lxc/%s/rootfs/var/lib/cloud/seed/nocloud' % host['name']
-            if not os.path.exists(nocloud_dir):
-                os.makedirs(nocloud_dir)
+            nocloud_dir = rootfs_dir + '/var/lib/cloud/seed/nocloud'
+            os.makedirs(nocloud_dir)
             open(os.path.join(nocloud_dir, 'user-data'), 'w').write(open(host['cloudinit']).read())
-            open(os.path.join(nocloud_dir, 'meta-data'), 'w').write('local-hostname: %s' % host['name'])
-            open('/var/lib/lxc/%s/rootfs/etc/cloud/cloud.cfg.d/90_dpkg.cfg' % (
-                    host['name'], ), 'w').write('''
+            open(os.path.join(nocloud_dir, 'meta-data'), 'w').write('local-hostname: %s' % hostname)
+            open(rootfs_dir + '/etc/cloud/cloud.cfg.d/90_dpkg.cfg', 'w').write('''
 dsmod: local
 
 datasource_list: [ NoCloud ]
 ''')
-        print("    launching")
-        subprocess.call(['lxc-start', '-d', '-L', '/tmp/lxc-%s.log' % host['name'], '-n', host['name'] ])
+        print("    launching %s" % host['role'])
+        subprocess.call(['lxc-start', '-d', '-L', '/tmp/lxc-%s.log' % hostname,
+                         '-n', hostname ])
 
 parser = argparse.ArgumentParser()
 parser.add_argument('action', help='action', choices=['stop', 'start', 'restart'])
@@ -221,7 +275,7 @@ parser.add_argument('--config', help='configuration file', required=True)
 args = parser.parse_args()
 
 stream = file(args.config, 'r')
-conf=yaml.load(stream)
+conf = yaml.load(stream)
 
 if args.action == 'start':
     start()
