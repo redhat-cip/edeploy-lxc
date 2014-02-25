@@ -149,23 +149,27 @@ lxc.network.name = eth%d
 ''' % (get_value(conf['network']['bridge'], idx), idx))
 
         lxcConfFd.write("lxc.rootfs = %s\n" % rootfs_dir +
-            "lxc.tty = 6\n" +
-            "lxc.pts = 1024\n" +
-            "lxc.utsname = %s\n" % hostname +
-            "lxc.cgroup.devices.deny = a\n" +
-            "lxc.cgroup.devices.allow = c 1:3 rwm\n" +
-            "lxc.cgroup.devices.allow = c 1:5 rwm\n" +
-            "lxc.cgroup.devices.allow = c 5:1 rwm\n" +
-            "lxc.cgroup.devices.allow = c 5:0 rwm\n" +
-            "lxc.cgroup.devices.allow = c 1:9 rwm\n" +
-            "lxc.cgroup.devices.allow = c 1:8 rwm\n" +
-            "lxc.cgroup.devices.allow = c 136:* rwm\n" +
-            "lxc.cgroup.devices.allow = c 5:2 rwm\n" +
-            "lxc.cgroup.devices.allow = c 254:0 rwm\n" +
-            "lxc.cgroup.devices.allow = b 7:* rwm # /dev/loop\n" +
-            "lxc.mount.entry = proc proc proc nodev,noexec,nosuid 0 0\n" +
-            "lxc.mount.entry = sysfs sys sysfs defaults  0 0\n" +
-            "lxc.cgroup.memory.limit_in_bytes = 536870912")
+                        "lxc.tty = 6\n" +
+                        "lxc.pts = 1024\n" +
+                        "lxc.utsname = %s\n" % hostname +
+                        "lxc.cgroup.devices.deny = a\n" +
+                        "lxc.aa_profile = unconfined\n" +
+                        "lxc.cgroup.devices.allow = c 1:3 rwm\n" +
+                        "lxc.cgroup.devices.allow = c 1:5 rwm\n" +
+                        "lxc.cgroup.devices.allow = c 5:1 rwm\n" +
+                        "lxc.cgroup.devices.allow = c 5:0 rwm\n" +
+                        "lxc.cgroup.devices.allow = c 1:9 rwm\n" +
+                        "lxc.cgroup.devices.allow = c 1:8 rwm\n" +
+                        "lxc.cgroup.devices.allow = c 136:* rwm\n" +
+                        "lxc.cgroup.devices.allow = c 5:2 rwm\n" +
+                        "lxc.cgroup.devices.allow = c 10:236 rwm # /dev/mapper/control\n" +
+                        "lxc.cgroup.devices.allow = c 10:237 rwm\n" +
+                        "lxc.cgroup.devices.allow = c 254:0 rwm\n" +
+                        "lxc.cgroup.devices.allow = b 7:* rwm # /dev/loop\n" +
+                        "lxc.cgroup.devices.allow = b 252:* rwm # /dev/dm-*\n" +
+                        "lxc.mount.entry = proc proc proc nodev,noexec,nosuid 0 0\n" +
+                        "lxc.mount.entry = sysfs sys sysfs defaults  0 0\n" +
+                        "lxc.cgroup.memory.limit_in_bytes = 536870912\n")
         lxcConfFd.close()
 
         debian_interfaces = rootfs_dir + '/etc/network/interfaces'
