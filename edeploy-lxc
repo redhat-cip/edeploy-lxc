@@ -109,6 +109,12 @@ def start():
         subprocess.call(['mount', '-t', 'aufs', '-o', 'br=%s:%s' % (aufs_rw_dir, '/var/lib/lxc/%s' % host['role']), 'none', lxc_dir ])
         #mount -t aufs -o br=/tmp/base_aufs/os-ci-test4:/var/lib/lxc/basesys none /var/lib/lxc/os-ci-test4
 
+        try:
+            fh = open('/var/lib/lxc/%s.config' % host['name'], 'r')
+            addons = fh.read()
+            fh.close()
+        except (IOError, OSError) as e:
+            addons = ""
 
         lxcConfFd = open('/var/lib/lxc/%s/config' % host['name'], 'w')
         lxcConfFd.write("lxc.network.type = veth\n" +
@@ -131,7 +137,8 @@ def start():
             "lxc.cgroup.devices.allow = b 7:* rwm # /dev/loop\n" +
             "lxc.mount.entry = proc proc proc nodev,noexec,nosuid 0 0\n" +
             "lxc.mount.entry = sysfs sys sysfs defaults  0 0\n" +
-            "lxc.cgroup.memory.limit_in_bytes = 536870912")
+            "lxc.cgroup.memory.limit_in_bytes = 536870912\n")
+        lxcConfFd.write(addons)
         lxcConfFd.close()
 
         debian_interfaces = '/var/lib/lxc/%s/rootfs/etc/network/interfaces' % host['name']
