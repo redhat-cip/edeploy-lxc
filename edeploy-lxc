@@ -116,25 +116,31 @@ def inner2_conf(dist, host):
             )
             fd.close()
 
-            fd = open('/var/lib/lxc/%s/rootfs/etc/sysconfig/network-scripts/ifcfg-eth0' % host['name'], 'w')
-            fd.write(
-                "DEVICE=eth0\n" +
-                "ONBOOT=yes\n" +
-                "BOOTPROTO=static\n" +
-                "IPADDR=%s\n" % host['address'] +
-                "NETMASK=255.255.255.0\n" +
-                "GATEWAY=%s\n" % conf['network']['gateway']
-            )
-            fd.close()
-            fd = open('/var/lib/lxc/%s/rootfs/etc/sysconfig/network' % host['name'], 'w')
-            fd.write(
-                "NETWORKING=yes\n" +
-                "HOSTNAME=%s.%s\n" % (host['name'], conf['network']['domain'])
-            )
-            fd.close()
 
     if dist == 'centos':
-        pass
+        # Manage to get a login prompt with lxc-console
+        path = '/var/lib/lxc/%s/rootfs/usr/lib/systemd/system/getty@.service' % host['name']
+        content = file(path).readlines()
+        content = [l for l in content if l.find('ConditionPathExists=/dev/tty0') < 0]
+        content.extend(['ConditionVirtualization=|lxc', 'ConditionPathExists=|/dev/tty0'])
+        file(path, 'w').writelines(content)
+        # Network
+        fd = open('/var/lib/lxc/%s/rootfs/etc/sysconfig/network-scripts/ifcfg-eth0' % host['name'], 'w')
+        fd.write(
+            "DEVICE=eth0\n" +
+            "ONBOOT=yes\n" +
+            "BOOTPROTO=static\n" +
+            "IPADDR=%s\n" % host['address'] +
+            "NETMASK=255.255.255.0\n" +
+            "GATEWAY=%s\n" % conf['network']['gateway']
+        )
+        fd.close()
+        fd = open('/var/lib/lxc/%s/rootfs/etc/sysconfig/network' % host['name'], 'w')
+        fd.write(
+            "NETWORKING=yes\n" +
+            "HOSTNAME=%s.%s\n" % (host['name'], conf['network']['domain'])
+        )
+        fd.close()
 
     hostFd = open('/var/lib/lxc/%s/rootfs/etc/hosts' % host['name'], 'w')
     hostFd.write(
