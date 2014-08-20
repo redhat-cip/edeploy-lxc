@@ -231,6 +231,9 @@ def start():
         if not os.path.exists(rootfs):
             os.makedirs(rootfs)
         subprocess.call(['rsync', '-av', '--delete', '--numeric-ids', '%s/%s/' % (conf['edeploy']['dir'], role), rootfs])
+        if os.path.exists('%s/etc/inittab' % rootfs):
+            # Remove this error "init: Id "5" respawning too fast: disabled for 5 minutes"
+            subprocess.call(['sed', '-i', 's/^respawn.*sbin.getty.*$//', '%s/etc/inittab' % rootfs])
         dist=get_dist(rootfs)
         inner_conf(dist, rootfs)
 
