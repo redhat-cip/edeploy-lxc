@@ -227,7 +227,7 @@ def start():
             roles.append(host['role'])
 
     for role in roles:
-        rootfs = '/var/lib/lxc/%s/rootfs' % role
+        rootfs = '/var/lib/lxc/%s_base/rootfs' % role
         if not os.path.exists(rootfs):
             os.makedirs(rootfs)
         subprocess.call(['rsync', '-av', '--delete', '--numeric-ids', '%s/%s/' % (conf['edeploy']['dir'], role), rootfs])
@@ -249,9 +249,9 @@ def start():
             os.makedirs(lxc_dir)
             os.makedirs(aufs_rw_dir)
 
-        subprocess.call(['mount', '-t', 'aufs', '-o', 'br=%s:%s' % (aufs_rw_dir, '/var/lib/lxc/%s' % host['role']), 'none', lxc_dir ])
+        subprocess.call(['mount', '-t', 'aufs', '-o', 'br=%s:%s' % (aufs_rw_dir, '/var/lib/lxc/%s_base' % host['role']), 'none', lxc_dir ])
 
-        dist=get_dist('/var/lib/lxc/%s/rootfs' % role)
+        dist=get_dist('/var/lib/lxc/%s/rootfs' % host['name'])
         lxc_conf(dist, host)
         inner2_conf(dist, host)
 
