@@ -213,6 +213,7 @@ def lxc_conf(dist, host):
             "lxc.network.link = %s\n" % conf['network']['bridge'] +
             "lxc.network.flags = up\n" +
             "lxc.autodev = 1\n" +
+            "lxc.kmsg = 0\n" +
             "lxc.aa_profile = unconfined\n")
         lxcConfFd.write(addons)
         lxcConfFd.close()
