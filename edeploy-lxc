@@ -17,7 +17,6 @@
 # under the License.
 
 import glob
-import augeas
 import yaml
 import subprocess
 import os
@@ -35,60 +34,77 @@ def stop_bridge():
 
 def setup_ssh_key(conf, host):
     if not 'ssh_key' in conf['general']:
-            return
+        return
 
+    print("    setup ssh key from %s" % conf['general']['ssh_key'])
     ssh_dir = '/var/lib/lxc/%s/rootfs/root/.ssh/' % host['name']
     if not os.path.isdir(ssh_dir):
         os.makedirs(ssh_dir)
     shutil.copyfile(conf['general']['ssh_key'], ssh_dir + '/authorized_keys')
 
+def setup_cloudinit(conf, rootfs, host):
+    if 'cloudinit' in host:
+        cloudinit_name = os.path.basename(host['cloudinit']).replace('.cloudinit', '')
+        print("    setting cloudinit flat file datasource")
+        nocloud_dir = os.path.join(rootfs, 'var/lib/cloud/seed/nocloud')
+        if not os.path.exists(nocloud_dir):
+            os.makedirs(nocloud_dir)
+        open(os.path.join(nocloud_dir, 'user-data'), 'w').write(open(host['cloudinit']).read())
+        open(os.path.join(nocloud_dir, 'meta-data'), 'w').write('local-hostname: %s' % host['name'])
+        open(os.path.join(rootfs, 'etc/cloud/cloud.cfg.d/90_dpkg.cfg'), 'w').write('''
+dsmod: local
+
+datasource_list: [ NoCloud ]
+''')
+
 def get_dist(rootfs):
     rr_path = os.path.join(rootfs, 'etc/redhat-release')
     dr_path = os.path.join(rootfs, 'etc/issue')
+    rel = None
     if os.path.isfile(rr_path) and file(rr_path).read().find('CentOS Linux release 7.0') == 0:
-        return 'centos'
+        rel = 'centos'
     if os.path.isfile(dr_path) and file(dr_path).read().find('Debian GNU/Linux 7') == 0:
-        return 'debian'
+        rel = 'debian'
+    if rel:
+        print("    detected target is %s" % rel)
+        return rel
     raise Exception('Unsupported dist !')
 
-def stop():
-    print "stopping"
-    for host in conf['hosts']:
+def stop_one(name):
+    aufs_rw_dir = "/tmp/base_aufs/%s" % name
+    lxc_dir = "/var/lib/lxc/%s" % name
+    try:
+        # lxc-kill is deprecated
+        subprocess.call(['lxc-stop', '-k', '-n', name])
+    except:
+        print("Failed to stop container %s" % name)
 
-        aufs_rw_dir = "/tmp/base_aufs/%s" % host['name']
-        lxc_dir = "/var/lib/lxc/%s" % host['name']
+    if os.path.exists(lxc_dir):
+        print("stopping %s ... " % name)
         try:
-            # lxc-kill is deprecated
-            subprocess.call(['lxc-stop', '-k', '-n', host['name'] ])
+            subprocess.call(['umount', os.path.join(lxc_dir, 'rootfs') ])
         except:
-            print("Failed to stop container %s" % host['name'])
+            print("Failed to umount %s" % os.path.join(lxc_dir, 'rootfs'))
+        shutil.rmtree(lxc_dir)
 
-        if os.path.exists(lxc_dir):
-            print("[%s]" % host['name'])
-            try:
-                subprocess.call(['umount', lxc_dir ])
-            except:
-                print("Failed to umount %s" % lxc_dir)
-            shutil.rmtree(lxc_dir)
+    if os.path.exists(aufs_rw_dir):
+        shutil.rmtree(aufs_rw_dir)
 
-        if os.path.exists(aufs_rw_dir):
-            shutil.rmtree(aufs_rw_dir)
-
+def stop():
+    print "Stopping all ..."
+    for host in conf['hosts']:
+        stop_one(host['name'])
     stop_bridge()
 
-def inner_conf(dist, rootfs):
+def inner_conf(dist, rootfs, host):
+    print("    Customizing target rootfs ...")
     if dist == 'debian':
         subprocess.call(['tar', 'xf', '/usr/share/debootstrap/devices.tar.gz'], cwd=rootfs)
         if not os.path.exists(rootfs + '/dev/pts'):
             os.makedirs(rootfs + '/dev/pts')
         # work around for LXC bug, rmmod module on the host system
         shutil.copyfile(rootfs + '/bin/true', rootfs + '/bin/kmod')
-    if dist == 'centos':
-        pass
-
-def inner2_conf(dist, host):
-    if dist == 'debian':
-        debian_interfaces = '/var/lib/lxc/%s/rootfs/etc/network/interfaces' % host['name']
+        debian_interfaces = os.path.join(rootfs, 'etc/network/interfaces')
         if os.path.exists(debian_interfaces):
             netFd = open(debian_interfaces, 'w')
             netFd.write("auto lo\n" +
@@ -99,33 +115,15 @@ def inner2_conf(dist, host):
                 "    netmask 255.255.255.0\n" +
                 "    gateway %s\n" % conf['network']['gateway'])
             netFd.close()
-        else:
-            fd = open('/var/lib/lxc/%s/rootfs/etc/init/lxc-sysinit.conf' % host['name'], 'w')
-            fd.write("start on startup\n" +
-                "env container\n" +
-                "pre-start script\n" +
-                "if [ \"x$container\" != \"xlxc\" -a \"x$container\" != \"xlibvirt\" ]; then\n" +
-                "stop;\n" +
-                "fi\n" +
-                "initctl start tty TTY=console\n" +
-                "rm -f /var/lock/subsys/*\n" +
-                "rm -f /var/run/*.pid\n" +
-                "telinit 3\n" +
-                "exit 0;\n" +
-                "end script\n"
-            )
-            fd.close()
-
-
     if dist == 'centos':
         # Manage to get a login prompt with lxc-console
-        path = '/var/lib/lxc/%s/rootfs/usr/lib/systemd/system/getty@.service' % host['name']
+        path = os.path.join(rootfs, 'usr/lib/systemd/system/getty@.service')
         content = file(path).readlines()
         content = [l for l in content if l.find('ConditionPathExists=/dev/tty0') < 0]
         content.extend(['ConditionVirtualization=|lxc', 'ConditionPathExists=|/dev/tty0'])
         file(path, 'w').writelines(content)
         # Network
-        fd = open('/var/lib/lxc/%s/rootfs/etc/sysconfig/network-scripts/ifcfg-eth0' % host['name'], 'w')
+        fd = open(os.path.join(rootfs, 'etc/sysconfig/network-scripts/ifcfg-eth0'), 'w')
         fd.write(
             "DEVICE=eth0\n" +
             "ONBOOT=yes\n" +
@@ -135,14 +133,16 @@ def inner2_conf(dist, host):
             "GATEWAY=%s\n" % conf['network']['gateway']
         )
         fd.close()
-        fd = open('/var/lib/lxc/%s/rootfs/etc/sysconfig/network' % host['name'], 'w')
+        fd = open(os.path.join(rootfs, 'etc/sysconfig/network'), 'w')
         fd.write(
             "NETWORKING=yes\n" +
             "HOSTNAME=%s.%s\n" % (host['name'], conf['network']['domain'])
         )
         fd.close()
 
-    hostFd = open('/var/lib/lxc/%s/rootfs/etc/hosts' % host['name'], 'w')
+
+    file(os.path.join(rootfs, 'etc/hostname'), 'w').write(host['name'])
+    hostFd = open(os.path.join(rootfs, 'etc/hosts'), 'w')
     hostFd.write(
         "127.0.0.1 %s.%s %s localhost\n" % (host['name'], conf['network']['domain'], host['name']) +
         "::1     localhost ip6-localhost ip6-loopback\n" +
@@ -155,6 +155,7 @@ def inner2_conf(dist, host):
     hostFd.close()
 
 def lxc_conf(dist, host):
+    print("    Customizing lxc conf ...")
     try:
         fh = open('/var/lib/lxc/%s.config' % host['name'], 'r')
         addons = fh.read()
@@ -224,58 +225,27 @@ def start():
     roles = []
     
     for host in conf['hosts']:
-        if host['role'] not in roles:
-            roles.append(host['role'])
-
-    for role in roles:
-        rootfs = '/var/lib/lxc/%s_base/rootfs' % role
-        if not os.path.exists(rootfs):
-            os.makedirs(rootfs)
-        subprocess.call(['rsync', '-av', '--delete', '--numeric-ids', '%s/%s/' % (conf['edeploy']['dir'], role), rootfs])
-        dist=get_dist(rootfs)
-        inner_conf(dist, rootfs)
-
-    for host in conf['hosts']:
         print("[%s]" % host['name'])
 
         aufs_rw_dir = "/tmp/base_aufs/%s" % host['name']
         lxc_dir = "/var/lib/lxc/%s" % host['name']
+        lxc_dir_rootfs = "/var/lib/lxc/%s/rootfs" % host['name']
+
         if os.path.exists(lxc_dir):
-            try:
-                subprocess.call(['lxc-kill', '-n', host['name'] ])
-                subprocess.call(['lxc-stop', '-n', host['name'] ])
-            except:
-                pass
-        else:
-            os.makedirs(lxc_dir)
-            os.makedirs(aufs_rw_dir)
+            stop_one(host['name'])
 
-        subprocess.call(['mount', '-t', 'aufs', '-o', 'br=%s:%s' % (aufs_rw_dir, '/var/lib/lxc/%s_base' % host['role']), 'none', lxc_dir ])
+        os.makedirs(lxc_dir)
+        os.makedirs(lxc_dir_rootfs)
+        os.makedirs(aufs_rw_dir)
 
-        dist=get_dist('/var/lib/lxc/%s/rootfs' % host['name'])
+        subprocess.call(['mount', '-t', 'aufs', '-o', 'br=%s:%s' % (aufs_rw_dir, os.path.join(conf['edeploy']['dir'], host['role'])), 'none', lxc_dir_rootfs ])
+
+        dist = get_dist(lxc_dir_rootfs)
         lxc_conf(dist, host)
-        inner2_conf(dist, host)
-
-        a = augeas.Augeas(root="/var/lib/lxc/%s/rootfs" % host['name'])
-        a.set("/files/etc/hostname/hostname", "%s" % host['name'])
-        a.save()
-
+        inner_conf(dist, lxc_dir_rootfs, host)
         setup_ssh_key(conf, host)
+        setup_cloudinit(conf, lxc_dir_rootfs, host)
 
-        if 'cloudinit' in host:
-            cloudinit_name = os.path.basename(host['cloudinit']).replace('.cloudinit', '')
-            print("    setting cloudinit flat file datasource")
-            nocloud_dir = '/var/lib/lxc/%s/rootfs/var/lib/cloud/seed/nocloud' % host['name']
-            if not os.path.exists(nocloud_dir):
-                os.makedirs(nocloud_dir)
-            open(os.path.join(nocloud_dir, 'user-data'), 'w').write(open(host['cloudinit']).read())
-            open(os.path.join(nocloud_dir, 'meta-data'), 'w').write('local-hostname: %s' % host['name'])
-            open('/var/lib/lxc/%s/rootfs/etc/cloud/cloud.cfg.d/90_dpkg.cfg' % (
-                    host['name'], ), 'w').write('''
-dsmod: local
-
-datasource_list: [ NoCloud ]
-''')
         print("    launching")
         subprocess.call(['lxc-start', '-d', '-L', '/tmp/lxc-%s.log' % host['name'], '-n', host['name'] ])
 
