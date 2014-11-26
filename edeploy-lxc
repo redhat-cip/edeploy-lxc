@@ -92,7 +92,8 @@ def stop_one(name, aufs_rw_dir):
 def stop():
     print "Stopping all ..."
     for host in conf['hosts']:
-        stop_one(host['name'])
+        aufs_rw_dir = "%s/%s" % (conf['edeploy']['aufs_dir'], host['name'])
+        stop_one(host['name'], aufs_rw_dir)
     stop_bridge()
 
 def inner_conf(dist, rootfs, host):
