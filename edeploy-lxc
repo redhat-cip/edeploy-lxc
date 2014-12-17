@@ -70,8 +70,7 @@ def get_dist(rootfs):
         return rel
     raise Exception('Unsupported dist !')
 
-def stop_one(name):
-    aufs_rw_dir = "/tmp/base_aufs/%s" % name
+def stop_one(name, aufs_rw_dir):
     lxc_dir = "/var/lib/lxc/%s" % name
     try:
         # lxc-kill is deprecated
@@ -93,7 +92,8 @@ def stop_one(name):
 def stop():
     print "Stopping all ..."
     for host in conf['hosts']:
-        stop_one(host['name'])
+        aufs_rw_dir = "%s/%s" % (conf['edeploy']['aufs_dir'], host['name'])
+        stop_one(host['name'], aufs_rw_dir)
     stop_bridge()
 
 def inner_conf(dist, rootfs, host):
@@ -223,16 +223,19 @@ def start():
     start_bridge()
 
     roles = []
-    
+
     for host in conf['hosts']:
         print("[%s]" % host['name'])
 
-        aufs_rw_dir = "/tmp/base_aufs/%s" % host['name']
+        try:
+            aufs_rw_dir = "%s/%s" % (conf['edeploy']['aufs_dir'], host['name'])
+        except:
+            aufs_rw_dir = "/tmp/base_aufs/%s" % host['name']
         lxc_dir = "/var/lib/lxc/%s" % host['name']
         lxc_dir_rootfs = "/var/lib/lxc/%s/rootfs" % host['name']
 
         if os.path.exists(lxc_dir):
-            stop_one(host['name'])
+            stop_one(host['name'], aufs_rw_dir)
 
         os.makedirs(lxc_dir)
         os.makedirs(lxc_dir_rootfs)
