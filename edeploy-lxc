@@ -65,6 +65,8 @@ def get_dist(rootfs):
         rel = 'centos'
     if os.path.isfile(dr_path) and file(dr_path).read().find('Debian GNU/Linux 7') == 0:
         rel = 'debian'
+    if os.path.isfile(rr_path) and file(rr_path).read().find('Fedora release') == 0:
+        rel = 'fedora'
     if rel:
         print("    detected target is %s" % rel)
         return rel
@@ -118,7 +120,7 @@ def inner_conf(dist, rootfs, host):
                 "    netmask 255.255.255.0\n" +
                 "    gateway %s\n" % conf['network']['gateway'])
             netFd.close()
-    if dist == 'centos':
+    if dist in ['centos', 'fedora']:
         # Manage to get a login prompt with lxc-console
         path = os.path.join(rootfs, 'usr/lib/systemd/system/getty@.service')
         content = file(path).readlines()
@@ -190,7 +192,7 @@ def lxc_conf(dist, host):
             "lxc.cgroup.memory.limit_in_bytes = 536870912\n")
         lxcConfFd.write(addons)
         lxcConfFd.close()
-    if dist == 'centos':
+    if dist in ['centos', 'fedora']:
         lxcConfFd = open('/var/lib/lxc/%s/config' % host['name'], 'w')
         lxcConfFd.write("lxc.rootfs = /var/lib/lxc/%s/rootfs\n" % host['name'] +
             "lxc.arch = x86_64\n" +
