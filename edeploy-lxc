@@ -58,19 +58,42 @@ datasource_list: [ NoCloud ]
 ''')
 
 def get_dist(rootfs):
-    rr_path = os.path.join(rootfs, 'etc/redhat-release')
-    dr_path = os.path.join(rootfs, 'etc/issue')
-    rel = None
-    if os.path.isfile(rr_path) and file(rr_path).read().find('CentOS Linux release 7.0') == 0:
-        rel = 'centos'
-    if os.path.isfile(dr_path) and file(dr_path).read().find('Debian GNU/Linux 7') == 0:
-        rel = 'debian'
-    if rel:
-        print("    detected target is %s" % rel)
-        return rel
+    checks = {
+        'etc/redhat-release': {
+            'centos': 'CentOS Linux release 7.0',
+            'fedora': 'Fedora release'
+        },
+        'etc/issue': {
+            'debian': 'Debian GNU/Linux 7'
+        }
+    }
+    for discriminant, patterns in checks.items():
+        path = os.path.join(rootfs, discriminant)
+        if os.path.exists(path):
+            content = file(path).read()
+            for rel, pattern in patterns.items():
+                if content.find(pattern) == 0:
+                    print("    detected target is %s" % rel)
+                    return rel
     raise Exception('Unsupported dist !')
 
-def stop_one(name, aufs_rw_dir):
+def get_union_filesystem(conf):
+    supported_fs = ['aufs', 'overlay']
+    if 'union_fs' in conf['edeploy']:
+        requested_fs = [conf['edeploy']['union_fs']]
+    else:
+        requested_fs = supported_fs
+    all_fs = [ l.split('\t')[-1] for l in open("/proc/filesystems").read().splitlines() ]
+    available_fs = [ fs for fs in requested_fs if (fs in supported_fs) and (fs in all_fs) ]
+    if not available_fs:
+        raise Exception('Unsupported fs: ' + ','.join(requested_fs))
+    return available_fs[0]
+
+def get_overlay_dir(conf):
+    fs = get_union_filesystem(conf)
+    return conf['edeploy'].get(fs + '_dir', '/tmp/base_' + fs)
+
+def stop_one(name, upper_rw_dir):
     lxc_dir = "/var/lib/lxc/%s" % name
     try:
         # lxc-kill is deprecated
@@ -86,17 +109,13 @@ def stop_one(name, aufs_rw_dir):
             print("Failed to umount %s" % os.path.join(lxc_dir, 'rootfs'))
         shutil.rmtree(lxc_dir)
 
-    if os.path.exists(aufs_rw_dir):
-        shutil.rmtree(aufs_rw_dir)
+    if os.path.exists(upper_rw_dir):
+        shutil.rmtree(upper_rw_dir)
 
 def stop():
     print "Stopping all ..."
     for host in conf['hosts']:
-        try:
-            aufs_rw_dir = "%s/%s" % (conf['edeploy']['aufs_dir'], host['name'])
-        except:
-            aufs_rw_dir = "/tmp/base_aufs/%s" % host['name']
-        stop_one(host['name'], aufs_rw_dir)
+        stop_one(host['name'], os.path.join(get_overlay_dir(conf), host['name']))
     stop_bridge()
 
 def inner_conf(dist, rootfs, host):
@@ -118,7 +137,7 @@ def inner_conf(dist, rootfs, host):
                 "    netmask 255.255.255.0\n" +
                 "    gateway %s\n" % conf['network']['gateway'])
             netFd.close()
-    if dist == 'centos':
+    if dist in ['centos', 'fedora']:
         # Manage to get a login prompt with lxc-console
         path = os.path.join(rootfs, 'usr/lib/systemd/system/getty@.service')
         content = file(path).readlines()
@@ -190,7 +209,7 @@ def lxc_conf(dist, host):
             "lxc.cgroup.memory.limit_in_bytes = 536870912\n")
         lxcConfFd.write(addons)
         lxcConfFd.close()
-    if dist == 'centos':
+    if dist in ['centos', 'fedora']:
         lxcConfFd = open('/var/lib/lxc/%s/config' % host['name'], 'w')
         lxcConfFd.write("lxc.rootfs = /var/lib/lxc/%s/rootfs\n" % host['name'] +
             "lxc.arch = x86_64\n" +
@@ -230,21 +249,28 @@ def start():
     for host in conf['hosts']:
         print("[%s]" % host['name'])
 
-        try:
-            aufs_rw_dir = "%s/%s" % (conf['edeploy']['aufs_dir'], host['name'])
-        except:
-            aufs_rw_dir = "/tmp/base_aufs/%s" % host['name']
+        union_fs = get_union_filesystem(conf)
+        overlay_dir = os.path.join(get_overlay_dir(conf), host['name'])
+        upper_rw_dir = os.path.join(overlay_dir, 'upperdir')
         lxc_dir = "/var/lib/lxc/%s" % host['name']
         lxc_dir_rootfs = "/var/lib/lxc/%s/rootfs" % host['name']
+        role_dir = os.path.join(conf['edeploy']['dir'], host['role'])
 
         if os.path.exists(lxc_dir):
-            stop_one(host['name'], aufs_rw_dir)
+            stop_one(host['name'], upper_rw_dir)
 
         os.makedirs(lxc_dir)
         os.makedirs(lxc_dir_rootfs)
-        os.makedirs(aufs_rw_dir)
+        os.makedirs(upper_rw_dir)
 
-        subprocess.call(['mount', '-t', 'aufs', '-o', 'br=%s:%s' % (aufs_rw_dir, os.path.join(conf['edeploy']['dir'], host['role'])), 'none', lxc_dir_rootfs ])
+        if union_fs == "aufs":
+            subprocess.call(['mount', '-t', 'aufs', '-o', 'br=%s:%s' % (upper_rw_dir, role_dir), 'none', lxc_dir_rootfs])
+        elif union_fs == "overlay":
+            work_dir = os.path.join(overlay_dir, 'workdir')
+            os.makedirs(work_dir)
+            subprocess.call(['mount', '-t', 'overlay', '-o', 'upperdir=%s,lowerdir=%s,workdir=%s' % (upper_rw_dir, role_dir, work_dir), 'overlayfs', lxc_dir_rootfs])
+        else:
+            raise Exception('Neither aufs nor overlayfs are supported on this system')
 
         dist = get_dist(lxc_dir_rootfs)
         lxc_conf(dist, host)
