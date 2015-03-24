@@ -65,6 +65,9 @@ def get_dist(rootfs):
         },
         'etc/issue': {
             'debian': 'Debian GNU/Linux 7'
+        },
+        'etc/issue': {
+            'debian': 'Ubuntu 14.04'
         }
     }
     for discriminant, patterns in checks.items():
@@ -82,12 +85,8 @@ def get_union_filesystem(conf):
     if 'union_fs' in conf['edeploy']:
         requested_fs = [conf['edeploy']['union_fs']]
     else:
-        requested_fs = supported_fs
-    all_fs = [ l.split('\t')[-1] for l in open("/proc/filesystems").read().splitlines() ]
-    available_fs = [ fs for fs in requested_fs if (fs in supported_fs) and (fs in all_fs) ]
-    if not available_fs:
-        raise Exception('Unsupported fs: ' + ','.join(requested_fs))
-    return available_fs[0]
+        requested_fs = [supported_fs[0]]  # aufs by default
+    return requested_fs[0]
 
 def get_overlay_dir(conf):
     fs = get_union_filesystem(conf)
@@ -267,7 +266,8 @@ def start():
             subprocess.call(['mount', '-t', 'aufs', '-o', 'br=%s:%s' % (upper_rw_dir, role_dir), 'none', lxc_dir_rootfs])
         elif union_fs == "overlay":
             work_dir = os.path.join(overlay_dir, 'workdir')
-            os.makedirs(work_dir)
+            if not os.path.isdir(work_dir):
+                os.makedirs(work_dir)
             subprocess.call(['mount', '-t', 'overlay', '-o', 'upperdir=%s,lowerdir=%s,workdir=%s' % (upper_rw_dir, role_dir, work_dir), 'overlayfs', lxc_dir_rootfs])
         else:
             raise Exception('Neither aufs nor overlayfs are supported on this system')

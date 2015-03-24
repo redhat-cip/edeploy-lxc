@@ -1,11 +1,12 @@
 # eDeploy LXC
 
 eDeploy LXC allows you to deploy quickly an test infrastructure within LXC
-container.
+container. A base file system tree is used as a base for a container
+using an addtionnal layer AUFS or overlayFS.
 
 It will deploy a set of LXC containers based on:
 
-- eDeploy roles
+- A pre existing file system tree
 - IP and host from a YAML conf
 
 ## use case
@@ -25,34 +26,26 @@ has to deploy 6 differents virtual machines.
 ## requirements
 
 * lxc
-* rsync
-* aufs-tools
-* python (testd with 2.7)
-* python-augeas
+* aufs-tools (if the kernel does not include overlayFS)
+* debootstrap (if your are going to deploy ubuntu or debian containers)
+* python (tested with 2.7)
 * python-yaml
+
+## Install target FS tree
+
+In the configuration file "edeploy.dir" is the base path to find the base FS tree then
+for each hosts you can specify a "role". The script will use edeploy.dir/role as base
+for mounting the overlay FS. In order to prepare this directory you can use the create_base.sh
+script as follow:
+
+./create_base.sh http://cloud-images.ubuntu.com/releases/14.04/release/ubuntu-14.04-server-cloudimg-amd64-disk1.img \
+ /var/lib/debootstrap/ubuntu14.04
 
 ## Warning
 
 _Access to host loopback devices is possible from the containers (RW)._
 
-### Network
-
-Bridge has to be create first. You can use libvirt for that or do it manually.
-
-For example `/etc/libvirt/qemu/networks/enovance0.xml`:
-```xml
-<network>
-  <name>virbr1</name>
-  <uuid>bf1c0ff4-a3b1-4357-bd7c-3195c7fcd789</uuid>
-  <forward dev='eth0' mode='nat'>
-    <interface dev='eth0'/>
-  </forward>
-  <bridge name='virbr1' stp='on' delay='0'/>
-  <mac address='52:54:00:dd:c7:2d'/>
-  <ip address='192.168.134.1' netmask='255.255.255.0'>
-  </ip>
-</network>
-```
+edeploy-lxc stop will wipe all the container data.
 
 ## Cloud-init
 
@@ -62,18 +55,16 @@ must be references in the conf.yaml with the key 'cloudinit'.
 They will be copied to /etc/cloud/cloud.cfg.d/ in order to be used as a flat
 file data-source.
 
-### How to enable LXC
+## Give internet access to the containers
 
-#### Debian Testing/Sid
+ ./firewall.sh
 
-* Enable cgroup in `/etc/default/libvirt-bin`:
-
-`mount_cgroups=yes`
-
-* Enable memory cgroup in grub `/etc/default/grub`:
-
-`GRUB_CMDLINE_LINUX="cgroup_enable=memory"` and run `update-grub2`
-
-## supported platform
+## supported target
 
 - Debian 7
+- Centos 7
+- Ubuntu 14.04
+
+## TODO:
+
+ - support a soft stop/restart that does not wipe the data.
