@@ -60,7 +60,7 @@ datasource_list: [ NoCloud ]
 def get_dist(rootfs):
     checks = {
         'etc/redhat-release': {
-            'centos': 'CentOS Linux release 7.0',
+            'centos': 'CentOS Linux release 7',
             'fedora': 'Fedora release'
         },
         'etc/issue': {
