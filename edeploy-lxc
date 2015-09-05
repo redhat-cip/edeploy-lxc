@@ -92,7 +92,7 @@ def get_overlay_dir(conf):
     fs = get_union_filesystem(conf)
     return conf['edeploy'].get(fs + '_dir', '/tmp/base_' + fs)
 
-def stop_one(name, upper_rw_dir):
+def stop_one(name, upper_rw_dir, aufs = True):
     lxc_dir = "/var/lib/lxc/%s" % name
     try:
         # lxc-kill is deprecated
@@ -100,7 +100,7 @@ def stop_one(name, upper_rw_dir):
     except:
         print("Failed to stop container %s" % name)
 
-    if os.path.exists(lxc_dir):
+    if os.path.exists(lxc_dir) and aufs:
         print("stopping %s ... " % name)
         try:
             subprocess.call(['umount', os.path.join(lxc_dir, 'rootfs') ])
@@ -108,13 +108,13 @@ def stop_one(name, upper_rw_dir):
             print("Failed to umount %s" % os.path.join(lxc_dir, 'rootfs'))
         shutil.rmtree(lxc_dir)
 
-    if os.path.exists(upper_rw_dir):
+    if os.path.exists(upper_rw_dir) and aufs:
         shutil.rmtree(upper_rw_dir)
 
 def stop():
     print "Stopping all ..."
     for host in conf['hosts']:
-        stop_one(host['name'], os.path.join(get_overlay_dir(conf), host['name']))
+        stop_one(host['name'], os.path.join(get_overlay_dir(conf), host['name']), conf["edeploy"]["union_fs"] == "aufs")
     stop_bridge()
 
 def inner_conf(dist, rootfs, host):
@@ -256,19 +256,19 @@ def start():
         role_dir = os.path.join(conf['edeploy']['dir'], host['role'])
 
         if os.path.exists(lxc_dir):
-            stop_one(host['name'], upper_rw_dir)
+            stop_one(host['name'], upper_rw_dir, conf["edeploy"]["union_fs"] == "aufs")
 
-        os.makedirs(lxc_dir)
-        os.makedirs(lxc_dir_rootfs)
-        os.makedirs(upper_rw_dir)
+        if not os.path.isdir(lxc_dir):
+            os.makedirs(lxc_dir)
+        if not os.path.isdir(lxc_dir_rootfs):
+            os.makedirs(lxc_dir_rootfs)
+        if not os.path.isdir(upper_rw_dir):
+            os.makedirs(upper_rw_dir)
 
         if union_fs == "aufs":
             subprocess.call(['mount', '-t', 'aufs', '-o', 'br=%s:%s' % (upper_rw_dir, role_dir), 'none', lxc_dir_rootfs])
         elif union_fs == "overlay":
-            work_dir = os.path.join(overlay_dir, 'workdir')
-            if not os.path.isdir(work_dir):
-                os.makedirs(work_dir)
-            subprocess.call(['mount', '-t', 'overlay', '-o', 'upperdir=%s,lowerdir=%s,workdir=%s' % (upper_rw_dir, role_dir, work_dir), 'overlayfs', lxc_dir_rootfs])
+            subprocess.call(["rsync", "-a", "--delete", "%s/" % role_dir, "%s/" % lxc_dir_rootfs])
         else:
             raise Exception('Neither aufs nor overlayfs are supported on this system')
 
@@ -278,6 +278,8 @@ def start():
         setup_ssh_key(conf, host)
         setup_cloudinit(conf, lxc_dir_rootfs, host)
 
+    # Start instance after rootfs prepared
+    for host in conf['hosts']:
         print("    launching")
         subprocess.call(['lxc-start', '-d', '-L', '/tmp/lxc-%s.log' % host['name'], '-n', host['name'] ])
 
